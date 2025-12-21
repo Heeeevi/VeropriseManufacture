@@ -2,95 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Coffee Shop ERP - Warm & Cozy Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Warm Coffee Tones */
+    --background: 30 25% 97%;
+    --foreground: 24 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 30% 99%;
+    --card-foreground: 24 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 30% 99%;
+    --popover-foreground: 24 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Rich Espresso Brown */
+    --primary: 24 45% 25%;
+    --primary-foreground: 30 25% 97%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Warm Cream */
+    --secondary: 35 35% 92%;
+    --secondary-foreground: 24 45% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - Soft Latte */
+    --muted: 30 20% 94%;
+    --muted-foreground: 24 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Sage Green (for success/nature feel) */
+    --accent: 145 25% 85%;
+    --accent-foreground: 145 35% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive - Warm Red */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 30 25% 97%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders & Inputs */
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 24 45% 35%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar - Dark Roast */
+    --sidebar-background: 24 35% 18%;
+    --sidebar-foreground: 30 25% 92%;
+    --sidebar-primary: 35 60% 65%;
+    --sidebar-primary-foreground: 24 35% 15%;
+    --sidebar-accent: 24 30% 25%;
+    --sidebar-accent-foreground: 30 25% 92%;
+    --sidebar-border: 24 25% 25%;
+    --sidebar-ring: 35 60% 65%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Custom Colors for Coffee Shop */
+    --coffee-dark: 24 45% 20%;
+    --coffee-medium: 24 35% 35%;
+    --coffee-light: 30 30% 60%;
+    --cream: 35 40% 92%;
+    --sage: 145 25% 70%;
+    --sage-dark: 145 30% 35%;
+    --caramel: 35 65% 55%;
+    --mocha: 20 30% 40%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Status Colors */
+    --success: 145 50% 40%;
+    --success-foreground: 145 50% 97%;
+    --warning: 40 90% 50%;
+    --warning-foreground: 40 90% 15%;
+    --info: 200 70% 50%;
+    --info-foreground: 200 70% 97%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(30 25% 97%) 0%, hsl(35 35% 92%) 100%);
+    --gradient-coffee: linear-gradient(135deg, hsl(24 35% 18%) 0%, hsl(24 45% 25%) 100%);
+    --gradient-sage: linear-gradient(135deg, hsl(145 25% 85%) 0%, hsl(145 30% 75%) 100%);
 
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(24 25% 15% / 0.08);
+    --shadow-medium: 0 4px 16px -4px hsl(24 25% 15% / 0.12);
+    --shadow-strong: 0 8px 32px -8px hsl(24 25% 15% / 0.16);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 24 25% 10%;
+    --foreground: 30 25% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 24 25% 14%;
+    --card-foreground: 30 25% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 24 25% 14%;
+    --popover-foreground: 30 25% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 35 55% 60%;
+    --primary-foreground: 24 25% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 24 20% 20%;
+    --secondary-foreground: 30 25% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 24 15% 18%;
+    --muted-foreground: 30 15% 55%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 145 20% 25%;
+    --accent-foreground: 145 35% 75%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 30 25% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 24 15% 22%;
+    --input: 24 15% 22%;
+    --ring: 35 55% 50%;
+
+    --sidebar-background: 24 30% 8%;
+    --sidebar-foreground: 30 25% 88%;
+    --sidebar-primary: 35 55% 55%;
+    --sidebar-primary-foreground: 24 25% 10%;
+    --sidebar-accent: 24 25% 15%;
+    --sidebar-accent-foreground: 30 25% 88%;
+    --sidebar-border: 24 20% 15%;
+    --sidebar-ring: 35 55% 55%;
+
+    --coffee-dark: 24 35% 12%;
+    --coffee-medium: 24 25% 25%;
+    --coffee-light: 30 20% 45%;
+    --cream: 35 20% 25%;
+    --sage: 145 15% 30%;
+    --sage-dark: 145 20% 55%;
+    --caramel: 35 50% 45%;
+    --mocha: 20 20% 30%;
+
+    --success: 145 40% 45%;
+    --success-foreground: 145 40% 10%;
+    --warning: 40 80% 45%;
+    --warning-foreground: 40 80% 10%;
+    --info: 200 60% 45%;
+    --info-foreground: 200 60% 10%;
   }
 }
 
@@ -100,6 +146,127 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* POS Button Styles for Tablet */
+  .pos-btn {
+    @apply p-4 rounded-xl font-medium transition-all duration-200 active:scale-95 touch-manipulation;
+    min-height: 4rem;
+  }
+
+  .pos-btn-product {
+    @apply pos-btn bg-card border border-border hover:border-primary hover:shadow-md flex flex-col items-center justify-center gap-2;
+  }
+
+  .pos-btn-category {
+    @apply pos-btn bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground;
+  }
+
+  .pos-btn-action {
+    @apply pos-btn bg-primary text-primary-foreground hover:opacity-90;
+  }
+
+  /* Card Variants */
+  .card-warm {
+    @apply bg-card rounded-xl border border-border shadow-soft;
+  }
+
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border shadow-medium hover:shadow-strong transition-shadow;
+  }
+
+  /* Status Badges */
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background-color: hsl(var(--warning) / 0.15);
+    color: hsl(var(--warning));
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background-color: hsl(var(--destructive) / 0.15);
+    color: hsl(var(--destructive));
+  }
+
+  /* Dashboard Stats */
+  .stat-card {
+    @apply card-warm p-6 flex flex-col gap-2;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-foreground;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  .stat-label {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+
+  .shadow-strong {
+    box-shadow: var(--shadow-strong);
+  }
+
+  .bg-gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .bg-gradient-coffee {
+    background: var(--gradient-coffee);
+  }
+
+  .bg-gradient-sage {
+    background: var(--gradient-sage);
+  }
+
+  /* Touch-friendly utilities */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
   }
 }
