@@ -997,6 +997,48 @@ export type Database = {
         }
         Relationships: []
       }
+      product_recipes: {
+        Row: {
+          id: string
+          product_id: string
+          inventory_item_id: string
+          quantity_needed: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          inventory_item_id: string
+          quantity_needed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          inventory_item_id?: string
+          quantity_needed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recipes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_recipes_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1013,6 +1055,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_product_availability: {
+        Args: {
+          p_product_id: string
+          p_outlet_id: string
+          p_quantity?: number
+        }
+        Returns: { is_available: boolean; missing_items: string[] }[]
+      }
+      deduct_inventory_for_sale: {
+        Args: {
+          p_transaction_id: string
+          p_outlet_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "owner" | "manager" | "staff" | "investor"
@@ -1023,6 +1081,7 @@ export type Database = {
       | "transfer_in"
       | "transfer_out"
       | "adjustment"
+      | "sale"
       payment_method: "cash" | "qris" | "transfer" | "card" | "split"
       purchase_order_status: "draft" | "ordered" | "received" | "cancelled"
     }

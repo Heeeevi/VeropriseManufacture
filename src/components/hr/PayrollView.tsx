@@ -113,10 +113,41 @@ export default function PayrollView() {
     };
 
     const handleApproveRun = async () => {
-        if (!selectedRun) return;
+        if (!selectedRun || !selectedOutlet) return;
         try {
+            // 1. Update payroll status to paid
             await supabase.from('payroll_runs').update({ status: 'paid', processed_at: new Date().toISOString() }).eq('id', selectedRun.id);
-            toast({ title: 'Paid', description: 'Payroll marked as paid' });
+
+            // 2. Get or create "Payroll/Gaji" expense category
+            let { data: payrollCategory } = await supabase
+                .from('expense_categories')
+                .select('id')
+                .eq('name', 'Payroll/Gaji')
+                .single();
+
+            if (!payrollCategory) {
+                const { data: newCategory } = await supabase
+                    .from('expense_categories')
+                    .insert({ name: 'Payroll/Gaji', description: 'Pengeluaran gaji karyawan' })
+                    .select('id')
+                    .single();
+                payrollCategory = newCategory;
+            }
+
+            // 3. Create expense record
+            const currentUser = (await supabase.auth.getUser()).data.user;
+            await supabase.from('expenses').insert({
+                outlet_id: selectedOutlet.id,
+                user_id: currentUser?.id,
+                amount: selectedRun.total_amount,
+                category_id: payrollCategory?.id,
+                description: `Payroll ${selectedRun.period}`,
+                expense_date: new Date().toISOString().split('T')[0],
+                status: 'approved',
+                notes: `Auto-generated from Payroll Run`
+            });
+
+            toast({ title: 'Paid', description: 'Payroll marked as paid and recorded as expense' });
             setShowDetailDialog(false);
             fetchPayrollRuns();
         } catch (error: any) {

@@ -20,14 +20,14 @@ export default function POS() {
   const { selectedOutlet } = useOutlet();
   const { currentShift, startShift, endShift } = useShift();
   const { toast } = useToast();
-  
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Dialogs
   const [showShiftDialog, setShowShiftDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -47,7 +47,7 @@ export default function POS() {
         supabase.from('categories').select('*').order('sort_order'),
         supabase.from('products').select('*').eq('is_active', true).order('name'),
       ]);
-      
+
       setCategories((catRes.data || []) as unknown as Category[]);
       setProducts((prodRes.data || []) as unknown as Product[]);
     } catch (error) {
@@ -152,6 +152,18 @@ export default function POS() {
 
       const { error: itemsError } = await supabase.from('transaction_items').insert(items);
       if (itemsError) throw itemsError;
+
+      // Deduct inventory based on product recipes
+      const { error: inventoryError } = await supabase.rpc('deduct_inventory_for_sale', {
+        p_transaction_id: transaction.id,
+        p_outlet_id: selectedOutlet.id,
+        p_user_id: user.id
+      });
+
+      if (inventoryError) {
+        console.warn('Inventory deduction warning:', inventoryError.message);
+        // Don't fail transaction if inventory deduction fails - products may not have recipes
+      }
 
       toast({ title: 'Sukses!', description: `Transaksi ${transaction.transaction_number} berhasil` });
       setCart([]);
@@ -311,8 +323,8 @@ export default function POS() {
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
             </div>
-            <Button 
-              className="w-full h-14 text-lg" 
+            <Button
+              className="w-full h-14 text-lg"
               disabled={cart.length === 0}
               onClick={() => setShowPaymentDialog(true)}
             >
