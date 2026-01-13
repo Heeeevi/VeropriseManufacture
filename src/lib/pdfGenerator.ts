@@ -227,7 +227,7 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
 
     // Booking Statistics Section
     if (data.bookingStats) {
-        addText('📅 Statistik Booking Pelanggan', margin, yPos, { fontSize: 14, fontStyle: 'bold' });
+        addText('Statistik Booking Pelanggan', margin, yPos, { fontSize: 14, fontStyle: 'bold' });
         yPos += 10;
 
         const stats = data.bookingStats;
@@ -259,13 +259,13 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
         pdf.setFillColor(240, 253, 244);
         pdf.setDrawColor(187, 247, 208);
         pdf.roundedRect(margin, yPos, (pageWidth - margin * 2 - 5) / 2, 20, 2, 2, 'FD');
-        addText('✅ Tingkat Keberhasilan', margin + 5, yPos + 8, { fontSize: 8, color: [22, 163, 74] });
+        addText('Tingkat Keberhasilan', margin + 5, yPos + 8, { fontSize: 8, color: [22, 163, 74] });
         addText(`${successRate}%`, margin + 5, yPos + 16, { fontSize: 12, fontStyle: 'bold', color: [22, 163, 74] });
 
         pdf.setFillColor(254, 242, 242);
         pdf.setDrawColor(254, 202, 202);
         pdf.roundedRect(margin + (pageWidth - margin * 2) / 2 + 2.5, yPos, (pageWidth - margin * 2 - 5) / 2, 20, 2, 2, 'FD');
-        addText('❌ Tingkat Pembatalan', margin + (pageWidth - margin * 2) / 2 + 7.5, yPos + 8, { fontSize: 8, color: [220, 38, 38] });
+        addText('Tingkat Pembatalan', margin + (pageWidth - margin * 2) / 2 + 7.5, yPos + 8, { fontSize: 8, color: [220, 38, 38] });
         addText(`${cancelRate}%`, margin + (pageWidth - margin * 2) / 2 + 7.5, yPos + 16, { fontSize: 12, fontStyle: 'bold', color: [220, 38, 38] });
 
         yPos += 30;
@@ -274,14 +274,14 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
         pdf.setFillColor(239, 246, 255);
         pdf.setDrawColor(191, 219, 254);
         pdf.roundedRect(margin, yPos, pageWidth - margin * 2, 18, 2, 2, 'FD');
-        addText('💰 Total Revenue dari Booking', margin + 5, yPos + 11, { fontSize: 9 });
+        addText('Total Revenue dari Booking', margin + 5, yPos + 11, { fontSize: 9 });
         addText(formatCurrency(stats.totalRevenue), pageWidth - margin - 5, yPos + 11, { fontSize: 11, fontStyle: 'bold', color: [37, 99, 235], align: 'right' });
 
         yPos += 28;
     }
 
     // All Services Section
-    addText('🛠️ Daftar Semua Layanan Terjual', margin, yPos, { fontSize: 14, fontStyle: 'bold' });
+    addText('Daftar Semua Layanan Terjual', margin, yPos, { fontSize: 14, fontStyle: 'bold' });
     yPos += 8;
 
     if (data.allServices && data.allServices.length > 0) {
