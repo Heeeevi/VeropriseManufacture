@@ -55,14 +55,38 @@ export default function PurchaseOrders() {
 
     const fetchOrders = async () => {
         try {
-            const { data, error } = await supabase
+            // First get orders
+            const { data: ordersData, error: ordersError } = await supabase
                 .from('purchase_orders')
-                .select(`*, vendor:vendors(name)`)
+                .select('*')
                 .eq('outlet_id', selectedOutlet?.id)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setOrders(data || []);
+            if (ordersError) throw ordersError;
+
+            // Then get vendor names separately
+            const vendorIds = [...new Set((ordersData || []).map(o => o.vendor_id).filter(Boolean))];
+            let vendorMap: Record<string, string> = {};
+            
+            if (vendorIds.length > 0) {
+                const { data: vendorsData } = await supabase
+                    .from('partner_vendors')
+                    .select('id, name')
+                    .in('id', vendorIds);
+                
+                vendorMap = (vendorsData || []).reduce((acc, v) => {
+                    acc[v.id] = v.name;
+                    return acc;
+                }, {} as Record<string, string>);
+            }
+
+            // Combine orders with vendor names
+            const ordersWithVendor = (ordersData || []).map(order => ({
+                ...order,
+                vendor: { name: vendorMap[order.vendor_id] || 'Unknown Vendor' }
+            }));
+
+            setOrders(ordersWithVendor);
         } catch (error: any) {
             console.error('Error fetching orders:', error);
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -72,7 +96,7 @@ export default function PurchaseOrders() {
     };
 
     const fetchVendors = async () => {
-        const { data } = await supabase.from('vendors').select('id, name').order('name');
+        const { data } = await supabase.from('partner_vendors').select('id, name').order('name');
         setVendors(data || []);
     };
 

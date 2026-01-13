@@ -217,17 +217,17 @@ export default function PublicBooking() {
     const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'BarberDoc';
     
     // WhatsApp number for BarberDoc (change this to actual business number)
-    const waNumber = '6281234567890'; // TODO: Replace with actual BarberDoc WhatsApp number
+    const waNumber = '6285185276861'; // TODO: Replace with actual BarberDoc WhatsApp number
     const waMessage = encodeURIComponent(
-      `Halo BarberDoc! 👋\n\n` +
+      `Halo BarberDoc! \n\n` +
       `Saya sudah melakukan booking dan pembayaran deposit:\n\n` +
       `📋 *Detail Booking*\n` +
       `• Nama: ${formData.customer_name}\n` +
       `• Outlet: ${outletName}\n` +
       `• Tanggal: ${dateStr}\n` +
       `• Jam: ${timeStr}\n` +
-      `• Deposit: Rp10.000 ✅\n\n` +
-      `Mohon konfirmasi booking saya. Terima kasih! 🙏`
+      `• Deposit: Rp10.000 \n\n` +
+      `Mohon konfirmasi booking saya. Terima kasih!`
     );
     
     // Open WhatsApp

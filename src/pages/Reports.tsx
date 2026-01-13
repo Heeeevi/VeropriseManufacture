@@ -202,6 +202,72 @@ export default function Reports() {
     try {
       const profitMargin = stats.totalSales > 0 ? (stats.netProfit / stats.totalSales) * 100 : 0;
 
+      // Calculate date range for queries
+      const today = new Date();
+      let startDate: Date;
+      switch (period) {
+        case 'week':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 7);
+          break;
+        case 'month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          break;
+        case 'year':
+          startDate = new Date(today.getFullYear(), 0, 1);
+          break;
+        default:
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      }
+
+      // Fetch all services/products sold (not just top 5)
+      let transactionsQuery = supabase
+        .from('transactions')
+        .select('*, transaction_items(*)')
+        .gte('created_at', startDate.toISOString());
+      
+      if (reportOutletId !== 'all') {
+        transactionsQuery = transactionsQuery.eq('outlet_id', reportOutletId);
+      }
+      
+      const { data: txData } = await transactionsQuery;
+
+      const allProductsMap = new Map<string, { quantity: number; revenue: number }>();
+      txData?.forEach((tx) => {
+        tx.transaction_items?.forEach((item: any) => {
+          const existing = allProductsMap.get(item.product_name) || { quantity: 0, revenue: 0 };
+          allProductsMap.set(item.product_name, {
+            quantity: existing.quantity + item.quantity,
+            revenue: existing.revenue + Number(item.subtotal),
+          });
+        });
+      });
+
+      const allServices = Array.from(allProductsMap.entries())
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      // Fetch booking statistics
+      let bookingsQuery = supabase
+        .from('bookings')
+        .select('*')
+        .gte('created_at', startDate.toISOString());
+      
+      if (reportOutletId !== 'all') {
+        bookingsQuery = bookingsQuery.eq('outlet_id', reportOutletId);
+      }
+      
+      const { data: bookingsData } = await bookingsQuery;
+
+      const bookingStats = {
+        total: bookingsData?.length || 0,
+        pending: bookingsData?.filter(b => b.status === 'pending').length || 0,
+        confirmed: bookingsData?.filter(b => b.status === 'confirmed').length || 0,
+        completed: bookingsData?.filter(b => b.status === 'completed').length || 0,
+        canceled: bookingsData?.filter(b => b.status === 'canceled').length || 0,
+        totalRevenue: bookingsData?.filter(b => b.payment_status === 'paid').reduce((sum, b) => sum + Number(b.payment_amount || 0), 0) || 0,
+      };
+
       const reportData: ReportData = {
         outletName: getSelectedOutletName(),
         periodLabel: period === 'week' ? '7 Hari Terakhir' : period === 'month' ? 'Bulan Ini' : 'Tahun Ini',
@@ -217,10 +283,12 @@ export default function Reports() {
         topProducts: stats.topProducts,
         salesByPayment: stats.salesByPayment,
         dailyData: stats.dailyData,
+        allServices,
+        bookingStats,
       };
 
       await generateReportPDF(reportData);
-      toast({ title: 'Berhasil', description: 'Laporan PDF berhasil diunduh' });
+      toast({ title: 'Berhasil', description: 'Laporan PDF berhasil diunduh (2 halaman)' });
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({ title: 'Error', description: 'Gagal membuat PDF', variant: 'destructive' });
