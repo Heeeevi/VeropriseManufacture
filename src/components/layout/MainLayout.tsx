@@ -92,7 +92,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <div className="p-4 border-b border-sidebar-border flex-shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-transparent flex items-center justify-center">
-              <img src="/Logo Long 2.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
+              <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297213/Logo1_dpdl8d.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-display text-lg font-semibold">BarberDoc ERP</h1>
@@ -174,7 +174,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 <div className="p-4 border-b border-sidebar-border">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-transparent flex items-center justify-center">
-                      <img src="/Logo Long 2.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
+                      <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297213/Logo1_dpdl8d.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
                     </div>
                     <div>
                       <h1 className="font-display text-lg font-semibold text-sidebar-foreground">BarberDoc ERP</h1>

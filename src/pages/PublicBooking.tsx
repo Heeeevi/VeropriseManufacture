@@ -21,7 +21,7 @@ export default function PublicBooking() {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [countdown, setCountdown] = useState(300); // 5 minutes
   const [bookingId, setBookingId] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     outlet_id: '',
     customer_name: '',
@@ -82,7 +82,7 @@ export default function PublicBooking() {
 
   const fetchBookedSlots = async () => {
     if (!formData.outlet_id || !formData.date) return;
-    
+
     // Create date range in local time, then convert to ISO for query
     const selectedDate = new Date(formData.date);
     const startOfDay = new Date(selectedDate);
@@ -125,7 +125,7 @@ export default function PublicBooking() {
       const mins = d.getMinutes().toString().padStart(2, '0');
       return `${hours}:${mins}`;
     });
-    
+
     console.log('Booked slots for', formData.date, ':', bookedTimes);
     setBookedSlots(bookedTimes);
   };
@@ -201,21 +201,21 @@ export default function PublicBooking() {
     if (bookingId) {
       await supabase.from('bookings').update({ payment_status: 'paid' }).eq('id', bookingId);
     }
-    
+
     // Build WhatsApp message with booking details
     const selectedDate = new Date(formData.date);
     const [hours, minutes] = formData.time.split(':');
     selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    
-    const dateStr = selectedDate.toLocaleDateString('id-ID', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
+
+    const dateStr = selectedDate.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
     const timeStr = formData.time;
     const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'BarberDoc';
-    
+
     // WhatsApp number for BarberDoc (change this to actual business number)
     const waNumber = '6285185276861'; // TODO: Replace with actual BarberDoc WhatsApp number
     const waMessage = encodeURIComponent(
@@ -229,16 +229,16 @@ export default function PublicBooking() {
       `• Deposit: Rp10.000 \n\n` +
       `Mohon konfirmasi booking saya. Terima kasih!`
     );
-    
+
     // Open WhatsApp
     const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
     window.open(waUrl, '_blank');
-    
+
     setShowQrisDialog(false);
     setBookingId(null);
     setFormData({ outlet_id: outlets[0]?.id || '', customer_name: '', customer_email: '', customer_phone: '', date: '', time: '' });
     toast({ title: 'Terima Kasih!', description: 'Silakan konfirmasi via WhatsApp yang sudah terbuka.' });
-    
+
     // Refresh slots
     fetchBookedSlots();
   };
@@ -255,7 +255,7 @@ export default function PublicBooking() {
       <header className="border-b bg-card/50 backdrop-blur sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/Logo Long 2.png" alt="BarberDoc" className="h-8" />
+            <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297218/Logo_Long_2_moiqg4.png" alt="BarberDoc" className="h-8" />
             <span className="font-semibold hidden sm:inline">BarberDoc Booking</span>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
@@ -359,7 +359,17 @@ export default function PublicBooking() {
                 <CardContent className="text-xs space-y-2">
                   <div className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-green-500" /><span>Tersedia untuk booking</span></div>
                   <div className="flex items-center gap-2"><XCircle className="h-3.5 w-3.5 text-muted-foreground" /><span>Sudah terisi / lewat</span></div>
-                  <p className="text-muted-foreground pt-1">Durasi ~30 menit per slot</p>
+                  <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-primary" /><span className="font-medium">Durasi 15 menit per slot</span></div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-destructive">⚠️ Kebijakan Keterlambatan</CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs text-destructive/80">
+                  <p className="font-medium">Keterlambatan lebih dari 15 menit = tidak ada refund deposit Rp10.000</p>
+                  <p className="mt-1 text-muted-foreground">Harap datang tepat waktu sesuai jadwal booking Anda.</p>
                 </CardContent>
               </Card>
 
@@ -391,7 +401,7 @@ export default function PublicBooking() {
       </main>
 
       {/* QRIS Dialog */}
-      <Dialog open={showQrisDialog} onOpenChange={() => {}}>
+      <Dialog open={showQrisDialog} onOpenChange={() => { }}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between text-base">
@@ -402,7 +412,7 @@ export default function PublicBooking() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="bg-white p-2 rounded-lg border">
-              <img src="/qris_barberdoc.jpeg" alt="QRIS" className="w-full h-auto rounded max-h-52 object-contain mx-auto" />
+              <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297218/qris_barberdoc_ywx3v4.jpg" alt="QRIS" className="w-full h-auto rounded max-h-52 object-contain mx-auto" />
             </div>
             <div className="bg-accent/10 p-2 rounded-lg text-center">
               <p className="text-xs text-muted-foreground">Total</p>

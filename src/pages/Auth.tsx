@@ -61,7 +61,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-strong">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-24 h-24 bg-transparent flex items-center justify-center">
-            <img src="/Logo Long 2.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
+            <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297218/Logo_Long_2_moiqg4.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <CardTitle className="text-2xl font-display">BarberDoc ERP</CardTitle>
