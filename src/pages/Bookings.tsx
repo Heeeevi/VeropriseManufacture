@@ -385,7 +385,9 @@ export default function Bookings() {
                           <div className="text-sm text-muted-foreground">{booking.customer_email}</div>
                           {booking.customer_phone && (
                             <a 
-                              href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, terima kasih telah booking di BarberDoc! Booking Anda untuk ${new Date(booking.slot_time).toLocaleDateString('id-ID')} jam ${new Date(booking.slot_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah kami terima.`)}`}
+                              href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, terima kasih telah booking di BarberDoc! Booking Anda untuk ${new Date(booking.slot_time).toLocaleDateString('id-ID')} jam ${new Date(booking.slot_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah kami terima. 
+                              
+Mohon untuk datang tepat waktu, keterlambatan lebih dari 15 menit akan hangus tanpa refund, Ditunggu kedatangannya!`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-xs text-green-600 hover:text-green-700 hover:underline mt-1"

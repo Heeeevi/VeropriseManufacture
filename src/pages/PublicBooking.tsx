@@ -90,23 +90,37 @@ export default function PublicBooking() {
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
+    // Only count slots that are:
+    // 1. confirmed or completed (any payment status)
+    // 2. pending AND paid (waiting for admin confirmation)
+    // Do NOT count: pending + unpaid (will auto-cancel), canceled
     const { data, error } = await supabase
       .from('bookings')
-      .select('slot_time, status')
+      .select('slot_time, status, payment_status')
       .eq('outlet_id', formData.outlet_id)
       .gte('slot_time', startOfDay.toISOString())
-      .lte('slot_time', endOfDay.toISOString())
-      .in('status', ['pending', 'confirmed', 'completed']);
+      .lte('slot_time', endOfDay.toISOString());
 
     if (error) {
       console.error('Error fetching booked slots:', error);
       return;
     }
 
+    // Filter: only slots that are truly booked
+    const validBookings = (data || []).filter((b) => {
+      // Canceled = always open
+      if (b.status === 'canceled') return false;
+      // Completed or Confirmed = always booked
+      if (b.status === 'completed' || b.status === 'confirmed') return true;
+      // Pending + paid = booked (waiting confirmation)
+      if (b.status === 'pending' && b.payment_status === 'paid') return true;
+      // Pending + unpaid = NOT booked (will timeout/cancel)
+      return false;
+    });
+
     // Extract time from slot_time and convert to local time
-    const bookedTimes = (data || []).map((b) => {
+    const bookedTimes = validBookings.map((b) => {
       const d = new Date(b.slot_time);
-      // Get hours and minutes in local timezone
       const hours = d.getHours().toString().padStart(2, '0');
       const mins = d.getMinutes().toString().padStart(2, '0');
       return `${hours}:${mins}`;
@@ -187,10 +201,46 @@ export default function PublicBooking() {
     if (bookingId) {
       await supabase.from('bookings').update({ payment_status: 'paid' }).eq('id', bookingId);
     }
+    
+    // Build WhatsApp message with booking details
+    const selectedDate = new Date(formData.date);
+    const [hours, minutes] = formData.time.split(':');
+    selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const dateStr = selectedDate.toLocaleDateString('id-ID', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+    const timeStr = formData.time;
+    const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'BarberDoc';
+    
+    // WhatsApp number for BarberDoc (change this to actual business number)
+    const waNumber = '6281234567890'; // TODO: Replace with actual BarberDoc WhatsApp number
+    const waMessage = encodeURIComponent(
+      `Halo BarberDoc! 👋\n\n` +
+      `Saya sudah melakukan booking dan pembayaran deposit:\n\n` +
+      `📋 *Detail Booking*\n` +
+      `• Nama: ${formData.customer_name}\n` +
+      `• Outlet: ${outletName}\n` +
+      `• Tanggal: ${dateStr}\n` +
+      `• Jam: ${timeStr}\n` +
+      `• Deposit: Rp10.000 ✅\n\n` +
+      `Mohon konfirmasi booking saya. Terima kasih! 🙏`
+    );
+    
+    // Open WhatsApp
+    const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
+    window.open(waUrl, '_blank');
+    
     setShowQrisDialog(false);
     setBookingId(null);
     setFormData({ outlet_id: outlets[0]?.id || '', customer_name: '', customer_email: '', customer_phone: '', date: '', time: '' });
-    toast({ title: 'Terima Kasih!', description: 'Pembayaran diterima. Kami akan konfirmasi booking Anda.' });
+    toast({ title: 'Terima Kasih!', description: 'Silakan konfirmasi via WhatsApp yang sudah terbuka.' });
+    
+    // Refresh slots
+    fetchBookedSlots();
   };
 
   const formatCountdown = (seconds: number) => {
@@ -252,7 +302,7 @@ export default function PublicBooking() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-sm">No. HP (opsional)</Label>
+                    <Label className="text-sm">No. Whatsapp untuk konfirmasi (Wajib)</Label>
                     <Input type="tel" placeholder="08123456789" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} className="h-9" />
                   </div>
 
