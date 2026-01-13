@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOutlet } from '@/hooks/useOutlet';
 import {
   Coffee, LayoutDashboard, ShoppingCart, Package, Receipt,
-  Users, BarChart3, LogOut, Menu, ChevronDown, Store, Calendar
+  Users, BarChart3, LogOut, Menu, ChevronDown, Store, Calendar, Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['owner', 'manager', 'staff', 'investor'] },
   { icon: ShoppingCart, label: 'POS / Kasir', href: '/pos', roles: ['owner', 'manager', 'staff'] },
   { icon: Calendar, label: 'Booking', href: '/bookings', roles: ['owner', 'manager', 'staff'] },
+  { icon: Tag, label: 'Produk & Layanan', href: '/products', roles: ['owner', 'manager'] },
   { icon: Package, label: 'Inventory', href: '/inventory', roles: ['owner', 'manager', 'staff'] },
   { icon: Receipt, label: 'Transaksi', href: '/transactions', roles: ['owner', 'manager', 'investor'] },
   { icon: Users, label: 'HR & Payroll', href: '/hr', roles: ['owner', 'manager'] },

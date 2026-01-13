@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import POS from "./pages/POS";
 import Transactions from "./pages/Transactions";
 import Inventory from "./pages/Inventory";
+import Products from "./pages/Products";
 import Vendors from "./pages/Vendors";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/pos" element={<POS />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/transactions" element={<Transactions />} />
+                <Route path="/products" element={<Products />} />
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/inventory/vendors" element={<Vendors />} />
                 <Route path="/inventory/purchase-orders" element={<PurchaseOrders />} />

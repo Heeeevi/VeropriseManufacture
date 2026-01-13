@@ -27,6 +27,7 @@ export default function Reports() {
     totalSales: 0,
     totalTransactions: 0,
     totalExpenses: 0,
+    cogs: 0, // Cost of Goods Sold (HPP)
     grossProfit: 0,
     netProfit: 0,
     avgTransaction: 0,
@@ -181,6 +182,7 @@ export default function Reports() {
         totalSales,
         totalTransactions,
         totalExpenses,
+        cogs, // HPP
         grossProfit,
         netProfit,
         avgTransaction,
@@ -348,7 +350,7 @@ export default function Reports() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card className="card-warm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -368,11 +370,12 @@ export default function Reports() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Pengeluaran</p>
-                  <p className="text-2xl font-bold mt-1">{formatCurrency(stats.totalExpenses)}</p>
+                  <p className="text-sm text-muted-foreground">HPP (Harga Pokok)</p>
+                  <p className="text-2xl font-bold mt-1">{formatCurrency(stats.cogs)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Cost of Goods Sold</p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-                  <Receipt className="h-6 w-6 text-destructive" />
+                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <Package className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>
@@ -384,9 +387,25 @@ export default function Reports() {
                 <div>
                   <p className="text-sm text-muted-foreground">Gross Profit</p>
                   <p className="text-2xl font-bold mt-1">{formatCurrency(stats.grossProfit)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Penjualan - HPP</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
                   <TrendingUp className="h-6 w-6 text-secondary-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-warm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Pengeluaran</p>
+                  <p className="text-2xl font-bold mt-1">{formatCurrency(stats.totalExpenses)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Operational Expenses</p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+                  <Receipt className="h-6 w-6 text-destructive" />
                 </div>
               </div>
             </CardContent>
@@ -398,7 +417,7 @@ export default function Reports() {
                 <div>
                   <p className="text-sm text-muted-foreground">Net Profit</p>
                   <p className="text-2xl font-bold mt-1">{formatCurrency(stats.netProfit)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{profitMargin.toFixed(1)}% margin</p>
+                  <p className="text-xs text-muted-foreground mt-1">Gross Profit - Expenses</p>
                 </div>
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stats.netProfit >= 0 ? 'bg-accent' : 'bg-destructive/10'}`}>
                   {stats.netProfit >= 0 ? (
@@ -406,6 +425,21 @@ export default function Reports() {
                   ) : (
                     <TrendingDown className="h-6 w-6 text-destructive" />
                   )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-warm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Profit Margin</p>
+                  <p className="text-2xl font-bold mt-1">{profitMargin.toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Net Profit / Penjualan</p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </CardContent>

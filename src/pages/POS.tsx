@@ -36,6 +36,9 @@ export default function POS() {
   const [closingCash, setClosingCash] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [processing, setProcessing] = useState(false);
+  
+  // Tax rate (percentage, default 0)
+  const [taxRate, setTaxRate] = useState<number>(0);
 
   useEffect(() => {
     fetchData();
@@ -92,7 +95,7 @@ export default function POS() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const tax = 0; // Can be configured
+  const tax = subtotal * (taxRate / 100); // Calculate tax based on tax rate percentage
   const total = subtotal + tax;
 
   const handleStartShift = async () => {
@@ -339,13 +342,27 @@ export default function POS() {
           </div>
 
           <div className="p-3 border-t border-border space-y-2 flex-shrink-0">
+            {/* Tax Rate Input */}
+            <div className="flex items-center justify-between text-sm">
+              <span>Pajak (%)</span>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={taxRate}
+                onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                className="w-20 h-7 text-right text-sm"
+                placeholder="0"
+              />
+            </div>
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             {tax > 0 && (
               <div className="flex justify-between text-sm">
-                <span>Pajak</span>
+                <span>Pajak ({taxRate}%)</span>
                 <span>{formatCurrency(tax)}</span>
               </div>
             )}

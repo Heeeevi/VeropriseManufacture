@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, AlertTriangle, Package, ArrowUpDown, Truck, FileText, Calendar, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Search, AlertTriangle, Package, ArrowUpDown, Truck, FileText, Calendar, Trash2, AlertCircle, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface InventoryItemWithStock {
@@ -43,6 +43,7 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showAdjustDialog, setShowAdjustDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItemWithStock | null>(null);
@@ -53,6 +54,14 @@ export default function Inventory() {
 
   // New item form
   const [newItem, setNewItem] = useState({
+    name: '',
+    unit: '',
+    min_stock: '',
+    cost_per_unit: '',
+  });
+
+  // Edit item form
+  const [editItem, setEditItem] = useState({
     name: '',
     unit: '',
     min_stock: '',
@@ -193,6 +202,43 @@ export default function Inventory() {
         description: error.message || 'Gagal menghapus item',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleEditClick = (item: InventoryItemWithStock) => {
+    setSelectedItem(item);
+    setEditItem({
+      name: item.name,
+      unit: item.unit,
+      min_stock: item.min_stock.toString(),
+      cost_per_unit: item.cost_per_unit.toString(),
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleEditItem = async () => {
+    if (!selectedItem) return;
+    
+    try {
+      const { error } = await supabase
+        .from('inventory_items')
+        .update({
+          name: editItem.name,
+          unit: editItem.unit,
+          min_stock: parseFloat(editItem.min_stock) || 0,
+          cost_per_unit: parseFloat(editItem.cost_per_unit) || 0,
+        })
+        .eq('id', selectedItem.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Berhasil', description: 'Item berhasil diupdate' });
+      setShowEditDialog(false);
+      setSelectedItem(null);
+      setEditItem({ name: '', unit: '', min_stock: '', cost_per_unit: '' });
+      fetchInventory();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -369,6 +415,16 @@ export default function Inventory() {
                         <ArrowUpDown className="h-4 w-4 mr-1" />
                         Adjust
                       </Button>
+                      {(isOwner || isManager) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditClick(item)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -409,7 +465,7 @@ export default function Inventory() {
               <Input
                 value={newItem.name}
                 onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                placeholder="Biji Kopi Arabica"
+                placeholder="Pomade, Shampoo, dll"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -418,7 +474,7 @@ export default function Inventory() {
                 <Input
                   value={newItem.unit}
                   onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                  placeholder="kg"
+                  placeholder="pcs, bottle, kg"
                 />
               </div>
               <div className="space-y-2">
@@ -432,18 +488,67 @@ export default function Inventory() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Harga per Unit (Rp)</Label>
+              <Label>Harga per Unit / HPP (Rp)</Label>
               <Input
                 type="number"
                 value={newItem.cost_per_unit}
                 onChange={(e) => setNewItem({ ...newItem, cost_per_unit: e.target.value })}
                 placeholder="150000"
               />
+              <p className="text-xs text-muted-foreground">Harga Pokok Penjualan untuk hitung profit</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Batal</Button>
             <Button onClick={handleAddItem}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">Edit Item - {selectedItem?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nama Item</Label>
+              <Input
+                value={editItem.name}
+                onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Satuan</Label>
+                <Input
+                  value={editItem.unit}
+                  onChange={(e) => setEditItem({ ...editItem, unit: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Min. Stok</Label>
+                <Input
+                  type="number"
+                  value={editItem.min_stock}
+                  onChange={(e) => setEditItem({ ...editItem, min_stock: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Harga per Unit / HPP (Rp)</Label>
+              <Input
+                type="number"
+                value={editItem.cost_per_unit}
+                onChange={(e) => setEditItem({ ...editItem, cost_per_unit: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Harga Pokok Penjualan untuk hitung profit</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Batal</Button>
+            <Button onClick={handleEditItem}>Simpan Perubahan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
