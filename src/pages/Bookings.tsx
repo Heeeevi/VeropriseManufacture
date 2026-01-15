@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { Calendar, Clock, Search, CheckCircle, XCircle, DollarSign, User, AlertCircle, Phone } from 'lucide-react';
+import { Calendar, Clock, Search, CheckCircle, XCircle, DollarSign, User, AlertCircle, Phone, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Booking } from '@/types/database';
 
@@ -129,6 +129,44 @@ export default function Bookings() {
       if (error) throw error;
 
       toast({ title: 'Berhasil', description: 'Booking dibatalkan' });
+      fetchBookings();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus booking ini?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({ title: 'Berhasil', description: 'Booking berhasil dihapus' });
+      fetchBookings();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleBulkDeleteOldBookings = async () => {
+    if (!confirm('Hapus semua booking yang sudah lewat dan selesai/dibatalkan?')) return;
+
+    try {
+      const now = new Date();
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .lt('slot_time', now.toISOString())
+        .in('status', ['completed', 'canceled']);
+
+      if (error) throw error;
+
+      toast({ title: 'Berhasil', description: 'Booking lama berhasil dihapus' });
       fetchBookings();
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -349,6 +387,15 @@ export default function Bookings() {
                   <SelectItem value="canceled">Batal</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDeleteOldBookings}
+                className="whitespace-nowrap"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Hapus Booking Lama
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -463,6 +510,16 @@ Mohon untuk datang tepat waktu, keterlambatan lebih dari 15 menit akan hangus ta
                               <User className="h-3 w-3 mr-1" />
                               {booking.confirmer?.full_name || 'Admin'}
                             </Badge>
+                          )}
+                          {(booking.status === 'completed' || booking.status === 'canceled') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteBooking(booking.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           )}
                         </div>
                       </TableCell>

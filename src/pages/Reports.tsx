@@ -506,6 +506,133 @@ export default function Reports() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Visualisasi Grafis - Perbandingan Finansial */}
+        <Card className="card-warm">
+          <CardHeader>
+            <CardTitle className="font-display flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Visualisasi Perbandingan Finansial
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Revenue vs Expenses vs Profit Chart */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Perbandingan Revenue, HPP, Expenses & Profit</h3>
+                <div className="space-y-2">
+                  {/* Total Sales Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Total Penjualan</span>
+                      <span className="font-semibold text-blue-600">{formatCurrency(stats.totalSales)}</span>
+                    </div>
+                    <div className="w-full h-8 bg-muted rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 transition-all duration-500 flex items-center justify-end pr-2"
+                        style={{ width: `${stats.totalSales > 0 ? 100 : 0}%` }}
+                      >
+                        <span className="text-xs text-white font-medium">100%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* HPP Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">HPP (COGS)</span>
+                      <span className="font-semibold text-orange-600">{formatCurrency(stats.cogs)}</span>
+                    </div>
+                    <div className="w-full h-8 bg-muted rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-orange-500 transition-all duration-500 flex items-center justify-end pr-2"
+                        style={{ width: `${stats.totalSales > 0 ? (stats.cogs / stats.totalSales * 100) : 0}%` }}
+                      >
+                        <span className="text-xs text-white font-medium">
+                          {stats.totalSales > 0 ? ((stats.cogs / stats.totalSales * 100).toFixed(1)) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expenses Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Total Pengeluaran</span>
+                      <span className="font-semibold text-red-600">{formatCurrency(stats.totalExpenses)}</span>
+                    </div>
+                    <div className="w-full h-8 bg-muted rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-red-500 transition-all duration-500 flex items-center justify-end pr-2"
+                        style={{ width: `${stats.totalSales > 0 ? (stats.totalExpenses / stats.totalSales * 100) : 0}%` }}
+                      >
+                        <span className="text-xs text-white font-medium">
+                          {stats.totalSales > 0 ? ((stats.totalExpenses / stats.totalSales * 100).toFixed(1)) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gross Profit Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Gross Profit</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(stats.grossProfit)}</span>
+                    </div>
+                    <div className="w-full h-8 bg-muted rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-green-500 transition-all duration-500 flex items-center justify-end pr-2"
+                        style={{ width: `${stats.totalSales > 0 ? (stats.grossProfit / stats.totalSales * 100) : 0}%` }}
+                      >
+                        <span className="text-xs text-white font-medium">
+                          {stats.totalSales > 0 ? ((stats.grossProfit / stats.totalSales * 100).toFixed(1)) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Profit Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Net Profit</span>
+                      <span className={`font-semibold ${stats.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {formatCurrency(stats.netProfit)}
+                      </span>
+                    </div>
+                    <div className="w-full h-8 bg-muted rounded overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-500 flex items-center justify-end pr-2 ${
+                          stats.netProfit >= 0 ? 'bg-emerald-600' : 'bg-red-600'
+                        }`}
+                        style={{ width: `${stats.totalSales > 0 ? Math.abs(stats.netProfit / stats.totalSales * 100) : 0}%` }}
+                      >
+                        <span className="text-xs text-white font-medium">
+                          {stats.totalSales > 0 ? ((stats.netProfit / stats.totalSales * 100).toFixed(1)) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Gross Margin</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.totalSales > 0 ? ((stats.grossProfit / stats.totalSales * 100).toFixed(1)) : 0}%
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Net Margin</p>
+                  <p className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {stats.totalSales > 0 ? ((stats.netProfit / stats.totalSales * 100).toFixed(1)) : 0}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

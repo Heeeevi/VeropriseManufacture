@@ -31,12 +31,12 @@ export default function PublicBooking() {
     time: '',
   });
 
-  // Generate time slots every 15 minutes from 09:00 to 20:00
+  // Generate time slots every 15 minutes from 10:00 to 19:00
   const allTimeSlots = useMemo(() => {
     const slots: string[] = [];
-    for (let hour = 9; hour <= 20; hour++) {
+    for (let hour = 10; hour <= 19; hour++) {
       for (let min = 0; min < 60; min += 15) {
-        if (hour === 20 && min > 0) break;
+        if (hour === 19 && min > 0) break;
         const h = hour.toString().padStart(2, '0');
         const m = min.toString().padStart(2, '0');
         slots.push(`${h}:${m}`);
@@ -217,7 +217,7 @@ export default function PublicBooking() {
     const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'BarberDoc';
 
     // WhatsApp number for BarberDoc (change this to actual business number)
-    const waNumber = '6285185276861'; // TODO: Replace with actual BarberDoc WhatsApp number
+    const waNumber = '6289530078075'; // BarberDoc WhatsApp number
     const waMessage = encodeURIComponent(
       `Halo BarberDoc! \n\n` +
       `Saya sudah melakukan booking dan pembayaran deposit:\n\n` +

@@ -39,6 +39,9 @@ export default function POS() {
   
   // Tax rate (percentage, default 0)
   const [taxRate, setTaxRate] = useState<number>(0);
+  
+  // Cash payment - amount received and change
+  const [cashReceived, setCashReceived] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -97,6 +100,7 @@ export default function POS() {
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const tax = subtotal * (taxRate / 100); // Calculate tax based on tax rate percentage
   const total = subtotal + tax;
+  const cashChange = paymentMethod === 'cash' && cashReceived ? (parseFloat(cashReceived) || 0) - total : 0;
 
   const handleStartShift = async () => {
     const cash = parseFloat(openingCash) || 0;
@@ -177,6 +181,7 @@ export default function POS() {
 
       toast({ title: 'Sukses!', description: `Transaksi ${transaction.transaction_number} berhasil` });
       setCart([]);
+      setCashReceived('');
       setShowPaymentDialog(false);
     } catch (error: any) {
       console.error('Payment error:', error);
@@ -387,9 +392,16 @@ export default function POS() {
           <DialogHeader>
             <DialogTitle className="font-display">Metode Pembayaran</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-2xl font-bold text-center mb-6">{formatCurrency(total)}</p>
-            <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)} className="space-y-3">
+          <div className="py-4 space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
+              <p className="text-3xl font-bold text-primary">{formatCurrency(total)}</p>
+            </div>
+            
+            <RadioGroup value={paymentMethod} onValueChange={(v) => {
+              setPaymentMethod(v as PaymentMethod);
+              setCashReceived('');
+            }} className="space-y-3">
               <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
                 <RadioGroupItem value="cash" />
                 <Banknote className="h-5 w-5" />
@@ -406,10 +418,45 @@ export default function POS() {
                 <span className="font-medium">Transfer Bank</span>
               </label>
             </RadioGroup>
+
+            {/* Cash Payment Input */}
+            {paymentMethod === 'cash' && (
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border">
+                <div className="space-y-2">
+                  <Label htmlFor="cashReceived">Uang Diterima</Label>
+                  <Input
+                    id="cashReceived"
+                    type="number"
+                    placeholder="0"
+                    value={cashReceived}
+                    onChange={(e) => setCashReceived(e.target.value)}
+                    className="text-lg font-semibold"
+                    min={total}
+                  />
+                </div>
+                {cashReceived && parseFloat(cashReceived) >= total && (
+                  <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+                    <span className="text-sm font-medium">Kembalian:</span>
+                    <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {formatCurrency(cashChange)}
+                    </span>
+                  </div>
+                )}
+                {cashReceived && parseFloat(cashReceived) < total && (
+                  <p className="text-sm text-destructive">Uang tidak cukup</p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>Batal</Button>
-            <Button onClick={handlePayment} disabled={processing}>
+            <Button variant="outline" onClick={() => {
+              setShowPaymentDialog(false);
+              setCashReceived('');
+            }}>Batal</Button>
+            <Button 
+              onClick={handlePayment} 
+              disabled={processing || (paymentMethod === 'cash' && (!cashReceived || parseFloat(cashReceived) < total))}
+            >
               {processing ? 'Memproses...' : 'Konfirmasi'}
             </Button>
           </DialogFooter>
