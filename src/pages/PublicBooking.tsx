@@ -159,10 +159,18 @@ export default function PublicBooking() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validasi nomor WA wajib
+    if (!formData.customer_phone || formData.customer_phone.trim() === '') {
+      toast({ title: 'Error', description: 'Nomor WhatsApp wajib diisi', variant: 'destructive' });
+      return;
+    }
+    
     if (!formData.time) {
       toast({ title: 'Error', description: 'Pilih jam terlebih dahulu', variant: 'destructive' });
       return;
     }
+    
     setLoading(true);
     try {
       const selectedDate = new Date(formData.date);
@@ -174,8 +182,8 @@ export default function PublicBooking() {
         .insert({
           outlet_id: formData.outlet_id,
           customer_name: formData.customer_name,
-          customer_email: formData.customer_email,
-          customer_phone: formData.customer_phone || null,
+          customer_email: formData.customer_email || null, // Email opsional
+          customer_phone: formData.customer_phone,
           slot_time: selectedDate.toISOString(),
           status: 'pending',
           payment_status: 'unpaid',
@@ -290,24 +298,32 @@ export default function PublicBooking() {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">Nama</Label>
-                      <Input placeholder="Nama lengkap" value={formData.customer_name} onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })} required className="h-9" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">Email</Label>
-                      <Input type="email" placeholder="email@contoh.com" value={formData.customer_email} onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })} required className="h-9" />
-                    </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nama Lengkap *</Label>
+                    <Input 
+                      placeholder="Nama lengkap" 
+                      value={formData.customer_name} 
+                      onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })} 
+                      required 
+                      className="h-9" 
+                    />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-sm">No. Whatsapp untuk konfirmasi (Wajib)</Label>
-                    <Input type="tel" placeholder="08123456789" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} className="h-9" />
+                    <Label className="text-sm">No. WhatsApp (Wajib) *</Label>
+                    <Input 
+                      type="tel" 
+                      placeholder="08123456789" 
+                      value={formData.customer_phone} 
+                      onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} 
+                      required
+                      className="h-9" 
+                    />
+                    <p className="text-xs text-muted-foreground">Untuk konfirmasi booking via WhatsApp</p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-sm">Tanggal</Label>
+                    <Label className="text-sm">Tanggal *</Label>
                     <Input type="date" min={new Date().toISOString().split('T')[0]} value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value, time: '' })} required className="h-9" />
                   </div>
 
@@ -336,6 +352,18 @@ export default function PublicBooking() {
                       {formData.time && <p className="text-sm text-primary font-medium">✓ Dipilih: {formData.time}</p>}
                     </div>
                   )}
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Email (Opsional)</Label>
+                    <Input 
+                      type="email" 
+                      placeholder="email@contoh.com" 
+                      value={formData.customer_email} 
+                      onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })} 
+                      className="h-9" 
+                    />
+                    <p className="text-xs text-muted-foreground">Email untuk notifikasi (tidak wajib)</p>
+                  </div>
 
                   <div className="pt-3 border-t">
                     <div className="flex items-center justify-between mb-3">
