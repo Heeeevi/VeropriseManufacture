@@ -21,6 +21,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Bookings from "./pages/Bookings";
 import PublicBooking from "./pages/PublicBooking";
+import Settings from "./pages/Settings";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/hr" element={<HRPage />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ShiftProvider>
