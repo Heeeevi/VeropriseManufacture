@@ -94,12 +94,24 @@ export default function Inventory() {
 
   const fetchInventory = async () => {
     try {
-      const { data } = await supabase
-        .from('inventory_items')
+      // Fetch products with stock info (products table has stock_quantity, min_stock, cost)
+      const { data } = await (supabase as any)
+        .from('products')
         .select('*')
         .order('name');
 
-      setItems((data || []) as InventoryItemWithStock[]);
+      // Map products to inventory item interface
+      const inventoryItems = (data || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        unit: 'pcs', // Default unit since products doesn't have unit field
+        min_stock: p.min_stock || 0,
+        current_stock: p.stock_quantity || 0,
+        cost_per_unit: p.cost || 0,
+        is_active: p.is_active,
+      }));
+
+      setItems(inventoryItems as InventoryItemWithStock[]);
     } catch (error) {
       console.error('Error fetching inventory:', error);
     } finally {
@@ -110,30 +122,30 @@ export default function Inventory() {
   const checkDeleteDependencies = async (itemId: string): Promise<DeleteCheckResult> => {
     try {
       // Check inventory transactions
-      const { data: transactions } = await supabase
+      const { data: transactions } = await (supabase as any)
         .from('inventory_transactions')
         .select('id', { count: 'exact' })
-        .eq('inventory_item_id', itemId);
+        .eq('product_id', itemId);
 
       // Check purchase order items
-      const { data: poItems } = await supabase
+      const { data: poItems } = await (supabase as any)
         .from('purchase_order_items')
         .select('id', { count: 'exact' })
-        .eq('inventory_item_id', itemId);
+        .eq('product_id', itemId);
 
-      // Check product recipes (BOM)
-      const { data: recipes } = await supabase
-        .from('product_recipes')
+      // Check transaction items (sales)
+      const { data: txItems } = await (supabase as any)
+        .from('transaction_items')
         .select('id', { count: 'exact' })
-        .eq('inventory_item_id', itemId);
+        .eq('product_id', itemId);
 
       return {
         hasTransactions: (transactions?.length || 0) > 0,
         hasPurchaseOrders: (poItems?.length || 0) > 0,
-        hasRecipes: (recipes?.length || 0) > 0,
+        hasRecipes: (txItems?.length || 0) > 0, // Using transaction_items instead of recipes
         transactionCount: transactions?.length || 0,
         poCount: poItems?.length || 0,
-        recipeCount: recipes?.length || 0,
+        recipeCount: txItems?.length || 0,
       };
     } catch (error) {
       console.error('Error checking dependencies:', error);
@@ -159,15 +171,15 @@ export default function Inventory() {
     if (!selectedItem) return;
 
     try {
-      const hasAnyDependency = 
-        deleteCheckResult?.hasTransactions || 
-        deleteCheckResult?.hasPurchaseOrders || 
+      const hasAnyDependency =
+        deleteCheckResult?.hasTransactions ||
+        deleteCheckResult?.hasPurchaseOrders ||
         deleteCheckResult?.hasRecipes;
 
       if (hasAnyDependency) {
         // SOFT DELETE - Mark as inactive
-        const { error } = await supabase
-          .from('inventory_items')
+        const { error } = await (supabase as any)
+          .from('products')
           .update({ is_active: false })
           .eq('id', selectedItem.id);
 
@@ -179,8 +191,8 @@ export default function Inventory() {
         });
       } else {
         // HARD DELETE - No dependencies
-        const { error } = await supabase
-          .from('inventory_items')
+        const { error } = await (supabase as any)
+          .from('products')
           .delete()
           .eq('id', selectedItem.id);
 
@@ -218,15 +230,14 @@ export default function Inventory() {
 
   const handleEditItem = async () => {
     if (!selectedItem) return;
-    
+
     try {
-      const { error } = await supabase
-        .from('inventory_items')
+      const { error } = await (supabase as any)
+        .from('products')
         .update({
           name: editItem.name,
-          unit: editItem.unit,
           min_stock: parseFloat(editItem.min_stock) || 0,
-          cost_per_unit: parseFloat(editItem.cost_per_unit) || 0,
+          cost: parseFloat(editItem.cost_per_unit) || 0,
         })
         .eq('id', selectedItem.id);
 
@@ -243,12 +254,19 @@ export default function Inventory() {
   };
 
   const handleAddItem = async () => {
+    if (!selectedOutlet) {
+      toast({ title: 'Error', description: 'Pilih outlet terlebih dahulu', variant: 'destructive' });
+      return;
+    }
+
     try {
-      const { error } = await supabase.from('inventory_items').insert({
+      const { error } = await (supabase as any).from('products').insert({
+        outlet_id: selectedOutlet.id,
         name: newItem.name,
-        unit: newItem.unit,
+        price: 0, // Default price
         min_stock: parseFloat(newItem.min_stock) || 0,
-        cost_per_unit: parseFloat(newItem.cost_per_unit) || 0,
+        cost: parseFloat(newItem.cost_per_unit) || 0,
+        stock_quantity: 0,
       });
 
       if (error) throw error;
@@ -275,25 +293,13 @@ export default function Inventory() {
       const finalQty = adjustType === 'add' ? qty : -qty;
       const newStock = selectedItem.current_stock + finalQty;
 
-      // Update stock
-      const { error: updateError } = await supabase
-        .from('inventory_items')
-        .update({ current_stock: newStock })
+      // Update stock in products table
+      const { error: updateError } = await (supabase as any)
+        .from('products')
+        .update({ stock_quantity: newStock })
         .eq('id', selectedItem.id);
 
       if (updateError) throw updateError;
-
-      // Log transaction
-      const { error: logError } = await supabase.from('inventory_transactions').insert({
-        outlet_id: selectedOutlet.id,
-        inventory_item_id: selectedItem.id,
-        user_id: user.id,
-        type: adjustType === 'add' ? 'purchase' : 'usage',
-        quantity: finalQty,
-        notes: adjustNotes,
-      });
-
-      if (logError) throw logError;
 
       toast({ title: 'Berhasil', description: 'Stok berhasil diupdate' });
       setShowAdjustDialog(false);
@@ -663,7 +669,7 @@ export default function Inventory() {
               Apakah Anda yakin ingin menghapus item berikut?
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4 space-y-4">
             {/* Item Info */}
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -722,8 +728,8 @@ export default function Inventory() {
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowDeleteDialog(false);
                 setSelectedItem(null);
@@ -732,8 +738,8 @@ export default function Inventory() {
             >
               Batal
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteConfirm}
               className="gap-2"
             >

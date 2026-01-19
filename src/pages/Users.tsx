@@ -52,7 +52,7 @@ export default function Users() {
   const [selectedRole, setSelectedRole] = useState<AppRole>('staff');
   const [selectedOutletIds, setSelectedOutletIds] = useState<string[]>([]);
   const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
-  
+
   // Edit form
   const [editForm, setEditForm] = useState({
     full_name: '',
@@ -74,6 +74,7 @@ export default function Users() {
   const [outletForm, setOutletForm] = useState({
     name: '',
     address: '',
+    phone: '',
   });
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export default function Users() {
         .from('outlets')
         .select('id, name, address')
         .order('name');
-      
+
       if (error) throw error;
       setOutlets(data || []);
     } catch (error) {
@@ -97,24 +98,15 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      // Approach: Get all user_roles first, then get profiles
-      // This ensures we see all users with roles, even if profile is missing
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
+      // Get all profiles (role is in profiles table now)
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-      }
-
-      // Also get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
-
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
       }
 
       // Get user_outlets assignments
@@ -140,46 +132,19 @@ export default function Users() {
         userOutletsMap.set(uo.user_id, existing);
       });
 
-      // Create a map of profiles by user_id
-      const profileMap = new Map<string, any>();
-      (profiles || []).forEach((p: any) => {
-        profileMap.set(p.user_id, p);
-      });
-
-      // Combine roles with profiles
-      const usersWithRoles: UserWithRole[] = (roles || []).map((role: any) => {
-        const profile = profileMap.get(role.user_id);
+      // Map profiles to UserWithRole (role is now in profiles)
+      const usersWithRoles: UserWithRole[] = (profiles || []).map((profile: any) => {
         return {
-          id: profile?.id || role.id,
-          user_id: role.user_id,
-          full_name: profile?.full_name || `User ${role.user_id.substring(0, 8)}...`,
-          email: profile?.phone || role.user_id.substring(0, 8), // Show partial ID if no phone
-          phone: profile?.phone || null,
-          role: role.role as AppRole,
-          created_at: role.created_at,
-          outlets: userOutletsMap.get(role.user_id) || [],
+          id: profile.id,
+          user_id: profile.id, // id is the user_id (references auth.users)
+          full_name: profile.full_name || `User ${profile.id.substring(0, 8)}...`,
+          email: profile.email || profile.id.substring(0, 8),
+          phone: profile.phone || null,
+          role: profile.role as AppRole, // role is now directly in profiles
+          created_at: profile.created_at,
+          outlets: userOutletsMap.get(profile.id) || [],
         };
       });
-
-      // Also add profiles without roles (if any)
-      (profiles || []).forEach((profile: any) => {
-        const hasRole = (roles || []).some((r: any) => r.user_id === profile.user_id);
-        if (!hasRole) {
-          usersWithRoles.push({
-            id: profile.id,
-            user_id: profile.user_id,
-            full_name: profile.full_name,
-            email: profile.phone || profile.user_id.substring(0, 8),
-            phone: profile.phone,
-            role: null,
-            created_at: profile.created_at,
-            outlets: userOutletsMap.get(profile.user_id) || [],
-          });
-        }
-      });
-
-      // Sort by created_at descending
-      usersWithRoles.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -193,29 +158,13 @@ export default function Users() {
     if (!selectedUser) return;
 
     try {
-      // Check if user already has a role
-      const { data: existing } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('user_id', selectedUser.user_id)
-        .single();
+      // Update role in profiles table (role is now in profiles)
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: selectedRole } as any)
+        .eq('id', selectedUser.user_id);
 
-      if (existing) {
-        // Update existing role
-        const { error } = await supabase
-          .from('user_roles')
-          .update({ role: selectedRole })
-          .eq('user_id', selectedUser.user_id);
-
-        if (error) throw error;
-      } else {
-        // Insert new role
-        const { error } = await supabase
-          .from('user_roles')
-          .insert({ user_id: selectedUser.user_id, role: selectedRole });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       toast({ title: 'Berhasil', description: 'Role berhasil diupdate' });
       setShowRoleDialog(false);
@@ -228,10 +177,11 @@ export default function Users() {
 
   const handleRemoveRole = async (userId: string) => {
     try {
+      // Set role to null in profiles (role is now in profiles)
       const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
+        .from('profiles')
+        .update({ role: null } as any)
+        .eq('id', userId);
 
       if (error) throw error;
 
@@ -263,8 +213,8 @@ export default function Users() {
       if (editForm.new_password && editForm.new_password.length >= 6) {
         // Note: This requires service_role key or Edge Function
         // For now, we'll just show a message
-        toast({ 
-          title: 'Info', 
+        toast({
+          title: 'Info',
           description: 'Password update requires Supabase Edge Function. Profile updated successfully.',
         });
       }
@@ -286,14 +236,11 @@ export default function Users() {
     }
 
     try {
-      // Delete role first
-      await supabase.from('user_roles').delete().eq('user_id', selectedUser.user_id);
-      
-      // Delete profile
+      // Delete profile (no need to delete from user_roles - role is in profiles now)
       const { error } = await supabase
         .from('profiles')
         .delete()
-        .eq('user_id', selectedUser.user_id);
+        .eq('id', selectedUser.user_id);
 
       if (error) throw error;
 
@@ -329,10 +276,11 @@ export default function Users() {
         // Wait a bit for trigger to create profile
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Assign role
+        // Update role in profile (role is now in profiles)
         const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: authData.user.id, role: addForm.role });
+          .from('profiles')
+          .update({ role: addForm.role } as any)
+          .eq('id', authData.user.id);
 
         if (roleError) {
           console.error('Role assignment error:', roleError);
@@ -358,9 +306,9 @@ export default function Users() {
         }
       }
 
-      toast({ 
-        title: 'Berhasil', 
-        description: 'User baru berhasil dibuat. User bisa langsung login tanpa verifikasi email (jika Supabase confirm email disabled).' 
+      toast({
+        title: 'Berhasil',
+        description: 'User baru berhasil dibuat. User bisa langsung login tanpa verifikasi email (jika Supabase confirm email disabled).'
       });
       setShowAddDialog(false);
       setAddForm({ email: '', password: '', full_name: '', phone: '', role: 'staff', outlet_id: '' });
@@ -388,7 +336,7 @@ export default function Users() {
           user_id: selectedUser.user_id,
           outlet_id: outletId,
         }));
-        
+
         const { error } = await supabase
           .from('user_outlets')
           .insert(inserts);
@@ -411,20 +359,25 @@ export default function Users() {
       toast({ title: 'Error', description: 'Nama outlet harus diisi', variant: 'destructive' });
       return;
     }
+    if (!outletForm.phone) {
+      toast({ title: 'Error', description: 'Nomor telepon outlet harus diisi', variant: 'destructive' });
+      return;
+    }
 
     try {
       const { error } = await supabase
         .from('outlets')
         .insert({
           name: outletForm.name,
-          address: outletForm.address || null,
+          address: outletForm.address || '',
+          phone: outletForm.phone,
         });
 
       if (error) throw error;
 
       toast({ title: 'Berhasil', description: 'Outlet baru berhasil ditambahkan' });
       setShowAddOutletDialog(false);
-      setOutletForm({ name: '', address: '' });
+      setOutletForm({ name: '', address: '', phone: '' });
       fetchOutlets();
     } catch (error: any) {
       console.error('Error adding outlet:', error);
@@ -444,7 +397,8 @@ export default function Users() {
         .from('outlets')
         .update({
           name: outletForm.name,
-          address: outletForm.address || null,
+          address: outletForm.address || '',
+          phone: outletForm.phone || selectedOutlet.phone,
         })
         .eq('id', selectedOutlet.id);
 
@@ -452,7 +406,7 @@ export default function Users() {
 
       toast({ title: 'Berhasil', description: 'Outlet berhasil diupdate' });
       setShowEditOutletDialog(false);
-      setOutletForm({ name: '', address: '' });
+      setOutletForm({ name: '', address: '', phone: '' });
       setSelectedOutlet(null);
       fetchOutlets();
       fetchUsers(); // Refresh to show updated outlet names
@@ -735,6 +689,7 @@ export default function Users() {
                                     setOutletForm({
                                       name: outlet.name,
                                       address: outlet.address || '',
+                                      phone: outlet.phone || '',
                                     });
                                     setShowEditOutletDialog(true);
                                   }}
@@ -821,15 +776,15 @@ export default function Users() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nama Lengkap</Label>
-              <Input 
-                value={editForm.full_name} 
+              <Input
+                value={editForm.full_name}
                 onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>No. Telepon</Label>
-              <Input 
-                value={editForm.phone} 
+              <Input
+                value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                 placeholder="08123456789"
               />
@@ -839,9 +794,9 @@ export default function Users() {
                 <Key className="h-4 w-4" />
                 Password Baru (opsional)
               </Label>
-              <Input 
+              <Input
                 type="password"
-                value={editForm.new_password} 
+                value={editForm.new_password}
                 onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })}
                 placeholder="Kosongkan jika tidak ingin ubah"
               />
@@ -900,34 +855,34 @@ export default function Users() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Email *</Label>
-              <Input 
+              <Input
                 type="email"
-                value={addForm.email} 
+                value={addForm.email}
                 onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                 placeholder="user@example.com"
               />
             </div>
             <div className="space-y-2">
               <Label>Password *</Label>
-              <Input 
+              <Input
                 type="password"
-                value={addForm.password} 
+                value={addForm.password}
                 onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
                 placeholder="Minimal 6 karakter"
               />
             </div>
             <div className="space-y-2">
               <Label>Nama Lengkap *</Label>
-              <Input 
-                value={addForm.full_name} 
+              <Input
+                value={addForm.full_name}
                 onChange={(e) => setAddForm({ ...addForm, full_name: e.target.value })}
                 placeholder="John Doe"
               />
             </div>
             <div className="space-y-2">
               <Label>No. Telepon</Label>
-              <Input 
-                value={addForm.phone} 
+              <Input
+                value={addForm.phone}
                 onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
                 placeholder="08123456789"
               />
@@ -1033,18 +988,26 @@ export default function Users() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nama Outlet *</Label>
-              <Input 
-                value={outletForm.name} 
+              <Input
+                value={outletForm.name}
                 onChange={(e) => setOutletForm({ ...outletForm, name: e.target.value })}
-                placeholder="Contoh: BarberDoc Cabang Senayan"
+                placeholder="Contoh: Veroprise Cabang Senayan"
               />
             </div>
             <div className="space-y-2">
               <Label>Alamat</Label>
-              <Input 
-                value={outletForm.address} 
+              <Input
+                value={outletForm.address}
                 onChange={(e) => setOutletForm({ ...outletForm, address: e.target.value })}
                 placeholder="Jl. Contoh No. 123"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>No. Telepon *</Label>
+              <Input
+                value={outletForm.phone}
+                onChange={(e) => setOutletForm({ ...outletForm, phone: e.target.value })}
+                placeholder="08123456789"
               />
             </div>
           </div>
@@ -1067,16 +1030,24 @@ export default function Users() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nama Outlet *</Label>
-              <Input 
-                value={outletForm.name} 
+              <Input
+                value={outletForm.name}
                 onChange={(e) => setOutletForm({ ...outletForm, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label>Alamat</Label>
-              <Input 
-                value={outletForm.address} 
+              <Input
+                value={outletForm.address}
                 onChange={(e) => setOutletForm({ ...outletForm, address: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>No. Telepon</Label>
+              <Input
+                value={outletForm.phone}
+                onChange={(e) => setOutletForm({ ...outletForm, phone: e.target.value })}
+                placeholder="08123456789"
               />
             </div>
           </div>

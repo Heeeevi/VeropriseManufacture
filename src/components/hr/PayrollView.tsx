@@ -58,12 +58,12 @@ export default function PayrollView() {
                 .from('employees')
                 .select('*')
                 .eq('outlet_id', selectedOutlet.id)
-                .eq('status', 'active');
+                .eq('is_active', true);
 
             if (!employees || employees.length === 0) throw new Error('No active employees found.');
 
             // 3. Create Payroll Run Header
-            const totalSalary = employees.reduce((sum, e) => sum + Number(e.base_salary), 0);
+            const totalSalary = employees.reduce((sum, e) => sum + Number(e.basic_salary || 0), 0);
 
             const { data: newRun, error: runError } = await supabase
                 .from('payroll_runs')
@@ -83,10 +83,10 @@ export default function PayrollView() {
             const items = employees.map(emp => ({
                 payroll_run_id: newRun.id,
                 employee_id: emp.id,
-                base_salary: emp.base_salary,
+                base_salary: emp.basic_salary || 0,
                 allowances: 0,
                 deductions: 0,
-                net_salary: emp.base_salary
+                net_salary: emp.basic_salary || 0
             }));
 
             const { error: itemsError } = await supabase.from('payroll_items').insert(items);
@@ -106,7 +106,7 @@ export default function PayrollView() {
         setSelectedRun(run);
         const { data } = await supabase
             .from('payroll_items')
-            .select('*, employee:employees(full_name, job_position)')
+            .select('*, employee:employees(full_name, position)')
             .eq('payroll_run_id', run.id);
         setRunItems(data || []);
         setShowDetailDialog(true);
@@ -227,7 +227,7 @@ export default function PayrollView() {
                                 {runItems.map(item => (
                                     <TableRow key={item.id}>
                                         <TableCell>{item.employee?.full_name}</TableCell>
-                                        <TableCell>{item.employee?.job_position}</TableCell>
+                                        <TableCell>{item.employee?.position}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.base_salary)}</TableCell>
                                         <TableCell className="text-right font-bold">{formatCurrency(item.net_salary)}</TableCell>
                                     </TableRow>

@@ -24,7 +24,8 @@ interface MainLayoutProps {
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['owner', 'manager', 'staff', 'investor'] },
   { icon: ShoppingCart, label: 'POS / Kasir', href: '/pos', roles: ['owner', 'manager', 'staff'] },
-  { icon: Calendar, label: 'Booking', href: '/bookings', roles: ['owner', 'manager', 'staff'] },
+  // BOOKING DISABLED
+  // { icon: Calendar, label: 'Booking', href: '/bookings', roles: ['owner', 'manager', 'staff'] },
   { icon: Tag, label: 'Produk & Layanan', href: '/products', roles: ['owner', 'manager'] },
   { icon: Package, label: 'Inventory', href: '/inventory', roles: ['owner', 'manager', 'staff'] },
   { icon: Receipt, label: 'Transaksi', href: '/transactions', roles: ['owner', 'manager', 'investor'] },
@@ -93,11 +94,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <div className="p-4 border-b border-sidebar-border flex-shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-transparent flex items-center justify-center">
-              <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297213/Logo1_dpdl8d.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
+              <img src="/logo.jpg" alt="Veroprise Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-semibold">BarberDoc ERP</h1>
-              <p className="text-xs text-sidebar-foreground/70">Barbershop Management</p>
+              <h1 className="font-display text-lg font-semibold">Veroprise ERP</h1>
+              <p className="text-xs text-sidebar-foreground/70">Whistleblow Entreprise Management</p>
             </div>
           </Link>
         </div>
@@ -175,10 +176,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 <div className="p-4 border-b border-sidebar-border">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-transparent flex items-center justify-center">
-                      <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297213/Logo1_dpdl8d.png" alt="BarberDoc Logo" className="w-full h-full object-contain" />
+                      <img src="/logo.jpg" alt="Veroprise Logo" className="w-full h-full object-contain" />
                     </div>
                     <div>
-                      <h1 className="font-display text-lg font-semibold text-sidebar-foreground">BarberDoc ERP</h1>
+                      <h1 className="font-display text-lg font-semibold text-sidebar-foreground">Veroprise ERP</h1>
                     </div>
                   </div>
                 </div>

@@ -31,7 +31,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data } = await supabase
-        .from('shifts')
+        .from('pos_shifts')
         .select('*')
         .eq('user_id', user.id)
         .eq('outlet_id', selectedOutlet.id)
@@ -60,7 +60,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data, error } = await supabase
-        .from('shifts')
+        .from('pos_shifts')
         .insert({
           user_id: user.id,
           outlet_id: selectedOutlet.id,
@@ -89,7 +89,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
 
     try {
       const { error } = await supabase
-        .from('shifts')
+        .from('pos_shifts')
         .update({
           ended_at: new Date().toISOString(),
           closing_cash: closingCash,

@@ -18,14 +18,15 @@ import { Badge } from '@/components/ui/badge';
 
 interface PurchaseOrder {
     id: string;
-    vendor_id: string;
+    supplier_id: string;
     status: 'draft' | 'ordered' | 'received' | 'cancelled';
     total_amount: number;
-    expected_date: string;
+    ordered_date: string;
     created_at: string;
     updated_at: string;
-    outlet_id: string;
-    created_by: string;
+    warehouse_id: string;
+    ordered_by: string;
+    supplier_name: string;
     vendor: {
         name: string;
     };
@@ -59,31 +60,30 @@ export default function PurchaseOrders() {
             const { data: ordersData, error: ordersError } = await supabase
                 .from('purchase_orders')
                 .select('*')
-                .eq('outlet_id', selectedOutlet?.id)
                 .order('created_at', { ascending: false });
 
             if (ordersError) throw ordersError;
 
-            // Then get vendor names separately
-            const vendorIds = [...new Set((ordersData || []).map(o => o.vendor_id).filter(Boolean))];
+            // Then get vendor names separately (from suppliers table)
+            const vendorIds = [...new Set((ordersData || []).map((o: any) => o.supplier_id).filter(Boolean))];
             let vendorMap: Record<string, string> = {};
-            
+
             if (vendorIds.length > 0) {
-                const { data: vendorsData } = await supabase
-                    .from('partner_vendors')
+                const { data: vendorsData } = await (supabase as any)
+                    .from('suppliers')
                     .select('id, name')
                     .in('id', vendorIds);
-                
-                vendorMap = (vendorsData || []).reduce((acc, v) => {
+
+                vendorMap = (vendorsData || []).reduce((acc: Record<string, string>, v: any) => {
                     acc[v.id] = v.name;
                     return acc;
                 }, {} as Record<string, string>);
             }
 
             // Combine orders with vendor names
-            const ordersWithVendor = (ordersData || []).map(order => ({
+            const ordersWithVendor = (ordersData || []).map((order: any) => ({
                 ...order,
-                vendor: { name: vendorMap[order.vendor_id] || 'Unknown Vendor' }
+                vendor: { name: vendorMap[order.supplier_id] || order.supplier_name || 'Unknown Vendor' }
             }));
 
             setOrders(ordersWithVendor);
@@ -96,7 +96,7 @@ export default function PurchaseOrders() {
     };
 
     const fetchVendors = async () => {
-        const { data } = await supabase.from('partner_vendors').select('id, name').order('name');
+        const { data } = await (supabase as any).from('suppliers').select('id, name').order('name');
         setVendors(data || []);
     };
 
@@ -151,8 +151,8 @@ export default function PurchaseOrders() {
                         const expenseDate = po.updated_at ? po.updated_at.split('T')[0] : new Date().toISOString().split('T')[0];
 
                         const { error: insertError } = await supabase.from('expenses').insert({
-                            outlet_id: po.outlet_id,
-                            user_id: po.created_by || user?.id,
+                            outlet_id: selectedOutlet?.id,
+                            user_id: po.ordered_by || user?.id,
                             category_id: categoryId,
                             amount: po.total_amount,
                             description: `Purchase Order #${poIdPrefix} - ${vendorName}`,
@@ -193,11 +193,11 @@ export default function PurchaseOrders() {
             const { error } = await supabase
                 .from('purchase_orders')
                 .insert({
-                    outlet_id: selectedOutlet.id,
-                    vendor_id: newOrderVendor,
-                    expected_date: newOrderDate || null,
+                    warehouse_id: selectedOutlet?.id, // Using outlet as warehouse for now
+                    supplier_id: newOrderVendor,
+                    ordered_date: newOrderDate || new Date().toISOString().split('T')[0],
                     status: 'draft',
-                    created_by: user?.id,
+                    ordered_by: user?.id,
                     total_amount: 0
                 });
 
@@ -303,7 +303,7 @@ export default function PurchaseOrders() {
                                             <TableCell className="font-medium">{order.vendor?.name || 'Unknown Vendor'}</TableCell>
                                             <TableCell>{getStatusBadge(order.status)}</TableCell>
                                             <TableCell>{new Date(order.created_at).toLocaleDateString('id-ID')}</TableCell>
-                                            <TableCell>{order.expected_date ? new Date(order.expected_date).toLocaleDateString('id-ID') : '-'}</TableCell>
+                                            <TableCell>{order.ordered_date ? new Date(order.ordered_date).toLocaleDateString('id-ID') : '-'}</TableCell>
                                             <TableCell className="text-right">{formatCurrency(order.total_amount)}</TableCell>
                                             <TableCell className="text-right">
                                                 <Link to={`/inventory/purchase-orders/${order.id}`}>

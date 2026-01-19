@@ -35,7 +35,7 @@ export function OutletProvider({ children }: { children: ReactNode }) {
       const { data: allOutlets } = await supabase
         .from('outlets')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'active')
         .order('name');
 
       const outletData = (allOutlets || []) as unknown as Outlet[];

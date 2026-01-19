@@ -11,12 +11,14 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { useOutlet } from '@/hooks/useOutlet';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Edit, Trash2, Package, Search } from 'lucide-react';
 import type { Product, Category } from '@/types/database';
 
 export default function Products() {
   const { toast } = useToast();
+  const { selectedOutlet } = useOutlet();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ export default function Products() {
     try {
       const [productsRes, categoriesRes] = await Promise.all([
         supabase.from('products').select('*').order('name'),
-        supabase.from('categories').select('*').order('sort_order'),
+        supabase.from('categories').select('*').order('name'),
       ]);
 
       if (productsRes.error) throw productsRes.error;
@@ -60,7 +62,7 @@ export default function Products() {
   };
 
   const filteredProducts = products.filter((p) => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory;
@@ -74,7 +76,7 @@ export default function Products() {
         name: product.name,
         description: product.description || '',
         price: product.price.toString(),
-        cost_price: product.cost_price?.toString() || '0',
+        cost_price: (product as any).cost?.toString() || '0',
         category_id: product.category_id || '',
         is_active: product.is_active,
       });
@@ -93,6 +95,11 @@ export default function Products() {
   };
 
   const handleSave = async () => {
+    if (!selectedOutlet) {
+      toast({ title: 'Error', description: 'Pilih outlet terlebih dahulu dari sidebar', variant: 'destructive' });
+      return;
+    }
+
     if (!formData.name || !formData.price) {
       toast({ title: 'Error', description: 'Nama dan harga harus diisi', variant: 'destructive' });
       return;
@@ -103,9 +110,10 @@ export default function Products() {
         name: formData.name,
         description: formData.description || null,
         price: parseFloat(formData.price) || 0,
-        cost_price: parseFloat(formData.cost_price) || 0,
+        cost: parseFloat(formData.cost_price) || 0,
         category_id: formData.category_id || null,
         is_active: formData.is_active,
+        outlet_id: selectedOutlet?.id,
       };
 
       if (editingProduct) {
@@ -253,24 +261,22 @@ export default function Products() {
                         </TableCell>
                         <TableCell>{getCategoryName(product.category_id)}</TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(product.price)}</TableCell>
-                        <TableCell className="text-right text-muted-foreground">{formatCurrency(product.cost_price || 0)}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">{formatCurrency((product as any).cost || 0)}</TableCell>
                         <TableCell className="text-right">
-                          <span className={`font-medium ${
-                            Number(profitMargin(product.price, product.cost_price || 0)) >= 30 
-                              ? 'text-green-600' 
-                              : Number(profitMargin(product.price, product.cost_price || 0)) >= 15 
-                                ? 'text-yellow-600' 
+                          <span className={`font-medium ${Number(profitMargin(product.price, (product as any).cost || 0)) >= 30
+                              ? 'text-green-600'
+                              : Number(profitMargin(product.price, (product as any).cost || 0)) >= 15
+                                ? 'text-yellow-600'
                                 : 'text-red-600'
-                          }`}>
-                            {profitMargin(product.price, product.cost_price || 0)}%
+                            }`}>
+                            {profitMargin(product.price, (product as any).cost || 0)}%
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            product.is_active 
-                              ? 'bg-green-100 text-green-700' 
+                          <span className={`px-2 py-1 rounded-full text-xs ${product.is_active
+                              ? 'bg-green-100 text-green-700'
                               : 'bg-gray-100 text-gray-600'
-                          }`}>
+                            }`}>
                             {product.is_active ? 'Aktif' : 'Nonaktif'}
                           </span>
                         </TableCell>

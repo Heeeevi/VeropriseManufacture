@@ -19,8 +19,9 @@ import PurchaseOrderDetail from "./pages/PurchaseOrderDetail";
 import HRPage from "./pages/HR";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
-import Bookings from "./pages/Bookings";
-import PublicBooking from "./pages/PublicBooking";
+// BOOKING FEATURE DISABLED
+// import Bookings from "./pages/Bookings";
+// import PublicBooking from "./pages/PublicBooking";
 import Settings from "./pages/Settings";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/NotFound";
@@ -39,11 +40,12 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/test" element={<TestPage />} />
-                <Route path="/book" element={<PublicBooking />} />
+                {/* BOOKING ROUTES DISABLED */}
+                {/* <Route path="/book" element={<PublicBooking />} /> */}
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pos" element={<POS />} />
-                <Route path="/bookings" element={<Bookings />} />
+                {/* <Route path="/bookings" element={<Bookings />} /> */}
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/inventory" element={<Inventory />} />

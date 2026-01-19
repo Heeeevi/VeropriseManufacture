@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
 import { Search, Plus, Minus, Trash2, ShoppingBag, CreditCard, Banknote, QrCode, Clock } from 'lucide-react';
+import { ReceiptPrinter, type ReceiptData } from '@/components/receipt';
 import type { Product, Category, CartItem, PaymentMethod } from '@/types/database';
 
 export default function POS() {
@@ -36,12 +37,16 @@ export default function POS() {
   const [closingCash, setClosingCash] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [processing, setProcessing] = useState(false);
-  
+
   // Tax rate (percentage, default 0)
   const [taxRate, setTaxRate] = useState<number>(0);
-  
+
   // Cash payment - amount received and change
   const [cashReceived, setCashReceived] = useState<string>('');
+
+  // Receipt printer state
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -140,8 +145,7 @@ export default function POS() {
         .from('transactions')
         .insert({
           outlet_id: selectedOutlet.id,
-          shift_id: currentShift.id,
-          user_id: user.id,
+          created_by: user.id,
           subtotal,
           tax,
           total,
@@ -180,9 +184,44 @@ export default function POS() {
       }
 
       toast({ title: 'Sukses!', description: `Transaksi ${transaction.transaction_number} berhasil` });
+
+      // Prepare receipt data for printing
+      const receiptItems = cart.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        unitPrice: item.product.price,
+        subtotal: item.product.price * item.quantity,
+      }));
+
+      const newReceiptData: ReceiptData = {
+        transactionNumber: transaction.transaction_number,
+        transactionDate: transaction.created_at || new Date().toISOString(),
+        outlet: {
+          name: selectedOutlet.name,
+          address: selectedOutlet.address || '',
+          phone: selectedOutlet.phone || '',
+        },
+        items: receiptItems,
+        subtotal,
+        tax,
+        taxRate,
+        discount: 0,
+        total,
+        payments: [{
+          method: paymentMethod,
+          amount: total,
+        }],
+        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) || 0 : undefined,
+        change: paymentMethod === 'cash' ? cashChange : undefined,
+        cashierName: user.email || undefined,
+        receiptFooter: 'Terima kasih atas kunjungan Anda!',
+      };
+
+      setReceiptData(newReceiptData);
       setCart([]);
       setCashReceived('');
       setShowPaymentDialog(false);
+      setShowReceiptDialog(true); // Show receipt dialog
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -397,7 +436,7 @@ export default function POS() {
               <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
               <p className="text-3xl font-bold text-primary">{formatCurrency(total)}</p>
             </div>
-            
+
             <RadioGroup value={paymentMethod} onValueChange={(v) => {
               setPaymentMethod(v as PaymentMethod);
               setCashReceived('');
@@ -453,8 +492,8 @@ export default function POS() {
               setShowPaymentDialog(false);
               setCashReceived('');
             }}>Batal</Button>
-            <Button 
-              onClick={handlePayment} 
+            <Button
+              onClick={handlePayment}
               disabled={processing || (paymentMethod === 'cash' && (!cashReceived || parseFloat(cashReceived) < total))}
             >
               {processing ? 'Memproses...' : 'Konfirmasi'}
@@ -486,6 +525,19 @@ export default function POS() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Printer Dialog */}
+      {receiptData && (
+        <ReceiptPrinter
+          data={receiptData}
+          open={showReceiptDialog}
+          onClose={() => {
+            setShowReceiptDialog(false);
+            setReceiptData(null);
+          }}
+          paperWidth={58}
+        />
+      )}
     </MainLayout>
   );
 }

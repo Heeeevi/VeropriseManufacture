@@ -43,7 +43,7 @@ export default function Bookings() {
         .from('bookings')
         .select('*')
         .eq('outlet_id', selectedOutlet.id)
-        .order('slot_time', { ascending: false });
+        .order('booking_date', { ascending: false });
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
@@ -161,7 +161,7 @@ export default function Bookings() {
       const { error } = await supabase
         .from('bookings')
         .delete()
-        .lt('slot_time', now.toISOString())
+        .lt('booking_date', now.toISOString().split('T')[0])
         .in('status', ['completed', 'canceled']);
 
       if (error) throw error;
@@ -209,19 +209,23 @@ export default function Bookings() {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    
+
     return bookings
       .filter((b) => {
-        const slotTime = new Date(b.slot_time);
-        return slotTime >= todayStart && slotTime <= todayEnd && b.status !== 'canceled';
+        const bookingDate = new Date(b.booking_date + 'T' + b.booking_time);
+        return bookingDate >= todayStart && bookingDate <= todayEnd && b.status !== 'canceled';
       })
-      .sort((a, b) => new Date(a.slot_time).getTime() - new Date(b.slot_time).getTime());
+      .sort((a, b) => {
+        const timeA = new Date(a.booking_date + 'T' + a.booking_time).getTime();
+        const timeB = new Date(b.booking_date + 'T' + b.booking_time).getTime();
+        return timeA - timeB;
+      });
   }, [bookings]);
 
   // Get upcoming bookings (from now onwards today)
   const upcomingTodayBookings = useMemo(() => {
     const now = new Date();
-    return todayBookings.filter((b) => new Date(b.slot_time) >= now);
+    return todayBookings.filter((b) => new Date(b.booking_date + 'T' + b.booking_time) >= now);
   }, [todayBookings]);
 
   const stats = {
@@ -302,21 +306,20 @@ export default function Bookings() {
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {todayBookings.map((booking) => {
-                  const slotTime = new Date(booking.slot_time);
+                  const slotTime = new Date(booking.booking_date + 'T' + booking.booking_time);
                   const now = new Date();
                   const isPast = slotTime < now;
                   const isUpcoming = !isPast && slotTime.getTime() - now.getTime() < 60 * 60 * 1000; // within 1 hour
-                  
+
                   return (
-                    <div 
-                      key={booking.id} 
-                      className={`p-3 rounded-lg border ${
-                        isPast 
-                          ? 'bg-muted/50 border-muted' 
-                          : isUpcoming 
-                            ? 'bg-yellow-500/10 border-yellow-500/30 ring-2 ring-yellow-500/20' 
+                    <div
+                      key={booking.id}
+                      className={`p-3 rounded-lg border ${isPast
+                          ? 'bg-muted/50 border-muted'
+                          : isUpcoming
+                            ? 'bg-yellow-500/10 border-yellow-500/30 ring-2 ring-yellow-500/20'
                             : 'bg-card border-border'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -331,8 +334,8 @@ export default function Bookings() {
                         <p className="font-medium truncate">{booking.customer_name}</p>
                         <p className="text-sm text-muted-foreground truncate">{booking.customer_email}</p>
                         {booking.customer_phone && (
-                          <a 
-                            href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, booking Anda di BarberDoc untuk ${slotTime.toLocaleDateString('id-ID')} jam ${slotTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah dikonfirmasi. Ditunggu kedatangannya!`)}`}
+                          <a
+                            href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, booking Anda di Veroprise untuk ${slotTime.toLocaleDateString('id-ID')} jam ${slotTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah dikonfirmasi. Ditunggu kedatangannya!`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-700 hover:underline"
@@ -431,8 +434,8 @@ export default function Bookings() {
                           <div className="font-medium">{booking.customer_name}</div>
                           <div className="text-sm text-muted-foreground">{booking.customer_email}</div>
                           {booking.customer_phone && (
-                            <a 
-                              href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, terima kasih telah booking di BarberDoc! Booking Anda untuk ${new Date(booking.slot_time).toLocaleDateString('id-ID')} jam ${new Date(booking.slot_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah kami terima. 
+                            <a
+                              href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${booking.customer_name}, terima kasih telah booking di Veroprise! Booking Anda untuk ${new Date(booking.slot_time).toLocaleDateString('id-ID')} jam ${new Date(booking.slot_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} telah kami terima. 
                               
 Mohon untuk datang tepat waktu, keterlambatan lebih dari 15 menit akan hangus tanpa refund, Ditunggu kedatangannya!`)}`}
                               target="_blank"
@@ -445,7 +448,7 @@ Mohon untuk datang tepat waktu, keterlambatan lebih dari 15 menit akan hangus ta
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{formatDateTime(booking.slot_time)}</TableCell>
+                      <TableCell>{new Date(booking.booking_date + 'T' + booking.booking_time).toLocaleString('id-ID')}</TableCell>
                       <TableCell>{getStatusBadge(booking.status)}</TableCell>
                       <TableCell>{getPaymentBadge(booking.payment_status)}</TableCell>
                       <TableCell>{formatCurrency(booking.payment_amount)}</TableCell>

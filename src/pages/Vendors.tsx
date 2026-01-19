@@ -48,13 +48,23 @@ export default function Vendors() {
 
     const fetchVendors = async () => {
         try {
-            const { data, error } = await supabase
-                .from('partner_vendors')
+            const { data, error } = await (supabase as any)
+                .from('suppliers')
                 .select('*')
                 .order('name');
 
             if (error) throw error;
-            setVendors(data || []);
+            // Map suppliers data to vendor interface
+            const vendorData = (data || []).map((s: any) => ({
+                id: s.id,
+                name: s.name,
+                contact_person: s.contact_person || '',
+                email: s.email || '',
+                phone: s.phone || '',
+                address: s.address || '',
+                notes: s.notes || ''
+            }));
+            setVendors(vendorData);
         } catch (error: any) {
             console.error('Error fetching vendors:', error);
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -70,7 +80,17 @@ export default function Vendors() {
         }
 
         try {
-            const { error } = await supabase.from('partner_vendors').insert(newVendor);
+            // Generate supplier code
+            const code = 'SUP-' + Date.now().toString().slice(-6);
+            const { error } = await (supabase as any).from('suppliers').insert({
+                code: code,
+                name: newVendor.name,
+                contact_person: newVendor.contact_person || null,
+                email: newVendor.email || null,
+                phone: newVendor.phone || '',
+                address: newVendor.address || null,
+                notes: newVendor.notes || null,
+            });
 
             if (error) throw error;
 

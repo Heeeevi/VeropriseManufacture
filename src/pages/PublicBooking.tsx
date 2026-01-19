@@ -222,12 +222,12 @@ export default function PublicBooking() {
       year: 'numeric'
     });
     const timeStr = formData.time;
-    const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'BarberDoc';
+    const outletName = outlets.find(o => o.id === formData.outlet_id)?.name || 'Veroprise';
 
-    // WhatsApp number for BarberDoc (change this to actual business number)
-    const waNumber = '6289530078075'; // BarberDoc WhatsApp number
+    // WhatsApp number for Veroprise (change this to actual business number)
+    const waNumber = '6289530078075'; // Veroprise WhatsApp number
     const waMessage = encodeURIComponent(
-      `Halo BarberDoc! \n\n` +
+      `Halo Veroprise! \n\n` +
       `Saya sudah melakukan booking dan pembayaran deposit:\n\n` +
       `📋 *Detail Booking*\n` +
       `• Nama: ${formData.customer_name}\n` +
@@ -263,8 +263,8 @@ export default function PublicBooking() {
       <header className="border-b bg-card/50 backdrop-blur sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="https://res.cloudinary.com/dtgqtofh6/image/upload/v1768297218/Logo_Long_2_moiqg4.png" alt="BarberDoc" className="h-8" />
-            <span className="font-semibold hidden sm:inline">BarberDoc Booking</span>
+            <img src="/logo.jpg" alt="Veroprise" className="h-8" />
+            <span className="font-semibold hidden sm:inline">Veroprise Booking</span>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
             Staff Login <ArrowRight className="ml-1 h-3 w-3" />

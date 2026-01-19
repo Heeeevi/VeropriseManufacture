@@ -3,44 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, MessageCircle, Star, Award, ShieldCheck } from 'lucide-react';
+import { ExternalLink, MessageCircle, Phone } from 'lucide-react';
 
-interface PartnerVendor {
+interface Supplier {
     id: string;
     name: string;
-    logo_url: string | null;
-    category: string;
-    business_types: string[];
-    description: string | null;
-    contact_whatsapp: string | null;
-    website_url: string | null;
-    is_featured: boolean;
-    badge: string;
+    phone: string;
+    email: string;
+    notes: string | null;
 }
 
-const categoryLabels: Record<string, string> = {
-    coffee_beans: '☕ Biji Kopi',
-    syrup: '🍯 Sirup & Flavoring',
-    packaging: '📦 Packaging',
-    equipment: '⚙️ Peralatan',
-    pharmacy: '💊 Farmasi',
-    retail_supply: '🏪 Perlengkapan Retail'
-};
-
-const badgeColors: Record<string, string> = {
-    verified: 'bg-green-100 text-green-700 border-green-300',
-    premium: 'bg-amber-100 text-amber-700 border-amber-300',
-    exclusive: 'bg-purple-100 text-purple-700 border-purple-300'
-};
-
-const badgeIcons: Record<string, React.ReactNode> = {
-    verified: <ShieldCheck className="h-3 w-3" />,
-    premium: <Star className="h-3 w-3" />,
-    exclusive: <Award className="h-3 w-3" />
-};
-
 export default function PartnerVendorSection() {
-    const [partners, setPartners] = useState<PartnerVendor[]>([]);
+    const [partners, setPartners] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -49,12 +23,12 @@ export default function PartnerVendorSection() {
 
     const fetchPartners = async () => {
         try {
-            const { data, error } = await supabase
-                .from('partner_vendors')
-                .select('*')
+            const { data, error } = await (supabase as any)
+                .from('suppliers')
+                .select('id, name, phone, email, notes')
                 .eq('is_active', true)
-                .order('is_featured', { ascending: false })
-                .order('name');
+                .order('name')
+                .limit(6);
 
             if (error) throw error;
             setPartners(data || []);
@@ -66,8 +40,13 @@ export default function PartnerVendorSection() {
     };
 
     const handleWhatsApp = (phone: string, vendorName: string) => {
-        const message = encodeURIComponent(`Halo ${vendorName}, saya tertarik dengan produk Anda. Saya menemukan Anda dari BarberDoc ERP.`);
-        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+        // Clean phone number and add country code if needed
+        let cleanPhone = phone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.slice(1);
+        }
+        const message = encodeURIComponent(`Halo ${vendorName}, saya tertarik dengan produk Anda. Saya menemukan Anda dari Veroprise ERP.`);
+        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     };
 
     if (loading) return null;
@@ -80,14 +59,14 @@ export default function PartnerVendorSection() {
                 <div>
                     <h2 className="text-lg font-semibold flex items-center gap-2">
                         <span className="text-2xl">🤝</span>
-                        Rekomendasi Partner BarberDoc
+                        Supplier Terdaftar
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Vendor terpercaya yang sudah diverifikasi untuk mendukung bisnis Anda
+                        Supplier yang sudah terdaftar di sistem
                     </p>
                 </div>
                 <Badge variant="outline" className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
-                    Ads by BarberDoc
+                    {partners.length} Supplier
                 </Badge>
             </div>
 
@@ -96,53 +75,45 @@ export default function PartnerVendorSection() {
                 {partners.map((partner) => (
                     <Card
                         key={partner.id}
-                        className={`flex-shrink-0 w-[300px] border-2 ${partner.is_featured
-                                ? 'border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50'
-                                : 'border-muted'
-                            }`}
+                        className="flex-shrink-0 w-[280px] border-2 border-muted hover:border-primary/30 transition-colors"
                     >
                         <CardContent className="p-4 space-y-3">
-                            {/* Header with Badge */}
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-base leading-tight">{partner.name}</h3>
+                            {/* Header */}
+                            <div>
+                                <h3 className="font-semibold text-base leading-tight">{partner.name}</h3>
+                                {partner.email && (
                                     <p className="text-xs text-muted-foreground mt-0.5">
-                                        {categoryLabels[partner.category] || partner.category}
+                                        {partner.email}
                                     </p>
-                                </div>
-                                <Badge
-                                    variant="outline"
-                                    className={`text-xs flex items-center gap-1 ${badgeColors[partner.badge]}`}
-                                >
-                                    {badgeIcons[partner.badge]}
-                                    {partner.badge.charAt(0).toUpperCase() + partner.badge.slice(1)}
-                                </Badge>
+                                )}
                             </div>
 
                             {/* Description */}
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                                {partner.description}
-                            </p>
+                            {partner.notes && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {partner.notes}
+                                </p>
+                            )}
 
                             {/* Actions */}
                             <div className="flex gap-2 pt-2">
-                                {partner.contact_whatsapp && (
+                                {partner.phone && (
                                     <Button
                                         size="sm"
                                         className="flex-1 bg-green-600 hover:bg-green-700"
-                                        onClick={() => handleWhatsApp(partner.contact_whatsapp!, partner.name)}
+                                        onClick={() => handleWhatsApp(partner.phone, partner.name)}
                                     >
                                         <MessageCircle className="h-4 w-4 mr-1" />
                                         WhatsApp
                                     </Button>
                                 )}
-                                {partner.website_url && (
+                                {partner.phone && (
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => window.open(partner.website_url!, '_blank')}
+                                        onClick={() => window.open(`tel:${partner.phone}`)}
                                     >
-                                        <ExternalLink className="h-4 w-4" />
+                                        <Phone className="h-4 w-4" />
                                     </Button>
                                 )}
                             </div>

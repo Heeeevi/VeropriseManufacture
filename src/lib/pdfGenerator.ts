@@ -63,7 +63,7 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
     pdf.setFillColor(79, 70, 229); // Indigo
     pdf.rect(0, 0, pageWidth, 40, 'F');
 
-    addText('BARBERDOC ERP', margin, 18, { fontSize: 22, fontStyle: 'bold', color: [255, 255, 255] });
+    addText('VEROPRISE ERP', margin, 18, { fontSize: 22, fontStyle: 'bold', color: [255, 255, 255] });
     addText('Laporan Keuangan', margin, 28, { fontSize: 12, color: [220, 220, 250] });
     addText(data.outletName, margin, 35, { fontSize: 10, color: [200, 200, 230] });
 
@@ -208,7 +208,7 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
 
     const now = new Date().toLocaleString('id-ID');
     addText(`Dibuat: ${now}`, margin, pageHeight - 7, { fontSize: 7, color: [150, 150, 150] });
-    addText('Laporan ini digenerate oleh BarberDoc ERP', pageWidth / 2, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'center' });
+    addText('Laporan ini digenerate oleh Veroprise ERP', pageWidth / 2, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'center' });
     addText('Halaman 1/2', pageWidth - margin, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'right' });
 
     // ========== PAGE 2: Services Detail & Booking Stats ==========
@@ -219,7 +219,7 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
     pdf.setFillColor(79, 70, 229);
     pdf.rect(0, 0, pageWidth, 35, 'F');
 
-    addText('BARBERDOC ERP', margin, 15, { fontSize: 18, fontStyle: 'bold', color: [255, 255, 255] });
+    addText('VEROPRISE ERP', margin, 15, { fontSize: 18, fontStyle: 'bold', color: [255, 255, 255] });
     addText('Detail Layanan & Statistik Booking', margin, 25, { fontSize: 11, color: [220, 220, 250] });
     addText(`${data.startDate} - ${data.endDate}`, pageWidth - margin, 20, { fontSize: 9, color: [200, 200, 230], align: 'right' });
 
@@ -337,7 +337,7 @@ export async function generateReportPDF(data: ReportData): Promise<void> {
     pdf.rect(0, pageHeight - 18, pageWidth, 18, 'F');
 
     addText(`Dibuat: ${now}`, margin, pageHeight - 7, { fontSize: 7, color: [150, 150, 150] });
-    addText('Laporan ini digenerate oleh BarberDoc ERP', pageWidth / 2, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'center' });
+    addText('Laporan ini digenerate oleh Veroprise ERP', pageWidth / 2, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'center' });
     addText('Halaman 2/2', pageWidth - margin, pageHeight - 7, { fontSize: 7, color: [150, 150, 150], align: 'right' });
 
     // Save PDF

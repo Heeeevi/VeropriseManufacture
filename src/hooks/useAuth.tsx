@@ -63,26 +63,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
+      // Fetch profile (role is in profiles table)
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      }
 
       if (profileData) {
         setProfile(profileData as unknown as Profile);
-      }
-
-      // Fetch role
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (roleData) {
-        setRole(roleData.role as AppRole);
+        // Set role from profile (force type because schema not updated yet)
+        const profileWithRole = profileData as any;
+        if (profileWithRole.role) {
+          setRole(profileWithRole.role as AppRole);
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);

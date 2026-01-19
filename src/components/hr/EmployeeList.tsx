@@ -29,13 +29,13 @@ export default function EmployeeList() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this employee?')) return;
+        if (!confirm('Yakin ingin menghapus karyawan ini?')) return;
 
         const { error } = await supabase.from('employees').delete().eq('id', id);
         if (error) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
         } else {
-            toast({ title: 'Success', description: 'Employee deleted' });
+            toast({ title: 'Success', description: 'Karyawan berhasil dihapus' });
             fetchEmployees();
         }
     };
@@ -44,9 +44,10 @@ export default function EmployeeList() {
         <Table>
             <TableHeader>
                 <TableRow>
+                    <TableHead>Kode</TableHead>
                     <TableHead>Nama Lengkap</TableHead>
                     <TableHead>Jabatan</TableHead>
-                    <TableHead>NIK</TableHead>
+                    <TableHead>Telepon</TableHead>
                     <TableHead>Gaji Pokok</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
@@ -54,17 +55,18 @@ export default function EmployeeList() {
             </TableHeader>
             <TableBody>
                 {employees.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Belum ada data karyawan</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Belum ada data karyawan</TableCell></TableRow>
                 ) : (
                     employees.map((emp) => (
                         <TableRow key={emp.id}>
+                            <TableCell className="font-mono text-xs">{emp.employee_code}</TableCell>
                             <TableCell className="font-medium">{emp.full_name}</TableCell>
-                            <TableCell>{emp.job_position}</TableCell>
-                            <TableCell>{emp.nik || '-'}</TableCell>
-                            <TableCell>{formatCurrency(emp.base_salary)}</TableCell>
+                            <TableCell>{emp.position}</TableCell>
+                            <TableCell>{emp.phone || '-'}</TableCell>
+                            <TableCell>{formatCurrency(emp.basic_salary || 0)}</TableCell>
                             <TableCell>
-                                <Badge variant={emp.status === 'active' ? 'default' : 'secondary'}>
-                                    {emp.status}
+                                <Badge variant={emp.is_active ? 'default' : 'secondary'}>
+                                    {emp.is_active ? 'Aktif' : 'Nonaktif'}
                                 </Badge>
                             </TableCell>
                             <TableCell className="text-right">
