@@ -50,7 +50,7 @@ export default function HRBonusView() {
     }, [selectedOutlet]);
 
     const fetchTargets = async () => {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
             .from('sales_targets')
             .select('*, products(name)')
             .eq('outlet_id', selectedOutlet?.id)
@@ -115,7 +115,7 @@ export default function HRBonusView() {
                 payload.product_id = newTarget.product_id;
             }
 
-            const { error } = await supabase.from('sales_targets').insert(payload);
+            const { error } = await (supabase as any).from('sales_targets').insert(payload);
             if (error) throw error;
 
             toast({ title: 'Success', description: 'Target sales berhasil ditambahkan' });
@@ -138,7 +138,7 @@ export default function HRBonusView() {
                 achievement_date: newBonus.achievement_date
             };
 
-            const { error } = await supabase.from('employee_bonuses').insert(payload);
+            const { error } = await (supabase as any).from('employee_bonuses').insert(payload);
             if (error) throw error;
 
             toast({ title: 'Success', description: 'Bonus berhasil ditambahkan' });

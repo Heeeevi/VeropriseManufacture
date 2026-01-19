@@ -161,7 +161,10 @@ export default function POS() {
       const transactionNumber = `TRX-${dateStr}-${timeStr}-${randomStr}`;
 
       // Prepare payment data
-      const finalPaymentMethod = isMultiPayment ? 'split' : paymentMethod;
+      // Don't use 'split' as payment_method - use the first method in splits or 'cash'
+      const finalPaymentMethod = isMultiPayment
+        ? (paymentSplits.length > 0 ? paymentSplits[0].method : 'cash')
+        : paymentMethod;
       const paymentDetails = isMultiPayment
         ? paymentSplits
         : [{ method: paymentMethod, amount: total }];
@@ -189,10 +192,8 @@ export default function POS() {
       const items = cart.map((item) => ({
         transaction_id: transaction.id,
         product_id: item.product.id,
-        product_name: item.product.name,
         quantity: item.quantity,
         unit_price: item.product.price,
-        cost_price: item.product.cost_price,
         subtotal: item.product.price * item.quantity,
       }));
 

@@ -30,7 +30,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('pos_shifts')
         .select('*')
         .eq('user_id', user.id)
@@ -38,10 +38,16 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
         .is('ended_at', null)
         .order('started_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching shift:', error);
+        // Don't crash the app, just set shift to null
+      }
 
       setCurrentShift(data as unknown as Shift | null);
-    } catch {
+    } catch (err) {
+      console.error('Error in fetchCurrentShift:', err);
       setCurrentShift(null);
     } finally {
       setLoading(false);
@@ -59,7 +65,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('pos_shifts')
         .insert({
           user_id: user.id,
@@ -84,12 +90,12 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
 
       if (employee) {
         // 2. Create attendance
-        const { error: attError } = await supabase
+        const { error: attError } = await (supabase as any)
           .from('attendances')
           .insert({
             outlet_id: selectedOutlet.id,
             employee_id: employee.id,
-            shift_id: data.id,
+            shift_id: data?.id,
             attendance_date: new Date().toISOString().split('T')[0],
             check_in: new Date().toISOString(),
             status: 'present',
@@ -117,7 +123,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('pos_shifts')
         .update({
           ended_at: new Date().toISOString(),
@@ -137,12 +143,12 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (attendance) {
-        await supabase
+        await (supabase as any)
           .from('attendances')
           .update({
             check_out: new Date().toISOString()
           })
-          .eq('id', attendance.id);
+          .eq('id', (attendance as any).id);
       }
 
       setCurrentShift(null);

@@ -36,11 +36,11 @@ export default function AttendanceView() {
     }, [selectedOutlet, dateFilter]);
 
     const fetchLogs = async () => {
-        const { data } = await supabase
-            .from('attendance_logs')
+        const { data } = await (supabase as any)
+            .from('attendances')
             .select('*, employee:employees(full_name)')
             .eq('outlet_id', selectedOutlet?.id)
-            .eq('date', dateFilter)
+            .eq('attendance_date', dateFilter)
             .order('created_at', { ascending: false });
         setLogs(data || []);
     };
@@ -50,7 +50,7 @@ export default function AttendanceView() {
             .from('employees')
             .select('id, full_name')
             .eq('outlet_id', selectedOutlet?.id)
-            .eq('status', 'active');
+            .eq('is_active', true);
         setEmployees(data || []);
     };
 
@@ -58,13 +58,13 @@ export default function AttendanceView() {
         if (!newLog.employee_id) return;
 
         try {
-            const { error } = await supabase.from('attendance_logs').insert({
+            const { error } = await (supabase as any).from('attendances').insert({
                 outlet_id: selectedOutlet?.id,
                 employee_id: newLog.employee_id,
-                date: dateFilter,
+                attendance_date: dateFilter,
                 status: newLog.status,
-                clock_in: newLog.clock_in ? `${dateFilter}T${newLog.clock_in}:00` : null,
-                clock_out: newLog.clock_out ? `${dateFilter}T${newLog.clock_out}:00` : null,
+                check_in: newLog.clock_in ? `${dateFilter}T${newLog.clock_in}:00` : null,
+                check_out: newLog.clock_out ? `${dateFilter}T${newLog.clock_out}:00` : null,
                 notes: newLog.notes
             });
 

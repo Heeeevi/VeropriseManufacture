@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Receipt, FileDown, Loader2, Building2 } from 'lucide-react';
 import { generateReportPDF, ReportData } from '@/lib/pdfGenerator';
-import { generateReportPDF, ReportData } from '@/lib/pdfGenerator';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIcon, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -932,8 +931,8 @@ export default function Reports() {
 
               {actualCash && (
                 <div className={`p-2 rounded text-sm flex justify-between ${parseFloat(actualCash) - closingStats.cashToDeposit === 0
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
                   }`}>
                   <span>Selisih:</span>
                   <span className="font-bold">
