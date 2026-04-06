@@ -33,7 +33,7 @@ export default function Transactions() {
         .from('transactions')
         .select(`
           *,
-          profiles:profiles(full_name),
+          creator:profiles!transactions_created_by_fkey(full_name),
           transaction_items (
             *,
             product:products(name)
@@ -83,7 +83,7 @@ export default function Transactions() {
   const filteredTransactions = transactions.filter(
     (tx) =>
       tx.transaction_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      tx.creator?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalSales = filteredTransactions.reduce((sum, tx) => sum + Number(tx.total), 0);
@@ -145,7 +145,7 @@ export default function Transactions() {
                   <TableRow key={tx.id}>
                     <TableCell className="font-mono text-sm">{tx.transaction_number}</TableCell>
                     <TableCell>{formatDateTime(tx.created_at)}</TableCell>
-                    <TableCell>{tx.profiles?.full_name || '-'}</TableCell>
+                    <TableCell>{tx.creator?.full_name || '-'}</TableCell>
                     <TableCell>{tx.transaction_items?.length || 0} item</TableCell>
                     <TableCell>{getPaymentBadge(tx.payment_method)}</TableCell>
                     <TableCell className="text-right font-semibold">{formatCurrency(tx.total)}</TableCell>
