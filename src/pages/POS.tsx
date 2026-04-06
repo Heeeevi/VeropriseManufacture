@@ -174,6 +174,7 @@ export default function POS() {
         .from('transactions')
         .insert({
           outlet_id: selectedOutlet.id,
+          shift_id: currentShift.id,
           created_by: user.id,
           subtotal,
           tax,
@@ -237,7 +238,7 @@ export default function POS() {
         discount: 0,
         total,
         payments: [{
-          method: paymentMethod,
+          method: finalPaymentMethod,
           amount: total,
         }],
         cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) || 0 : undefined,

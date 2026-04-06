@@ -33,6 +33,7 @@ export default function Transactions() {
         .from('transactions')
         .select(`
           *,
+          profiles:profiles(full_name),
           transaction_items (
             *,
             product:products(name)
@@ -153,7 +154,12 @@ export default function Transactions() {
                 {filteredTransactions.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Tidak ada transaksi
+                      <div className="space-y-1">
+                        <p>Tidak ada transaksi penjualan POS</p>
+                        <p className="text-xs">
+                          Purchase order dan penerimaan barang tercatat di menu Inventory / Laporan, bukan di riwayat transaksi kasir.
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

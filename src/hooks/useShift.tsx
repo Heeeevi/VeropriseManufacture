@@ -111,7 +111,8 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error starting shift:', error);
-      toast({ title: 'Error', description: 'Gagal memulai shift', variant: 'destructive' });
+      const message = error instanceof Error ? error.message : 'Gagal memulai shift';
+      toast({ title: 'Error', description: message, variant: 'destructive' });
       return false;
     }
   };
@@ -156,7 +157,8 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error ending shift:', error);
-      toast({ title: 'Error', description: 'Gagal mengakhiri shift', variant: 'destructive' });
+      const message = error instanceof Error ? error.message : 'Gagal mengakhiri shift';
+      toast({ title: 'Error', description: message, variant: 'destructive' });
       return false;
     }
   };
