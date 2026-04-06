@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarberBook | Pesan Cukur Mudah</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="hero__content">
+            <p class="badge">Langsung pilih jadwal, bayar, selesai.</p>
+            <h1>Cukur rapi tanpa antre.</h1>
+            <p class="sub">Pesan jam yang cocok, bayar aman, dapat notifikasi. Cocok untuk semua orang, tinggal isi nama & jam.</p>
+            <a class="button primary" href="#booking-section">Pesan Sekarang</a>
+            <p class="hint">Admin? Buka <a href="/admin/">/admin</a> untuk dashboard.</p>
+        </div>
+        <div class="hero__card">
+            <h3>Harga flat</h3>
+            <p class="price">Rp10.000</p>
+            <ul>
+                <li>Pangkas & styling dasar</li>
+                <li>Pilih jam yang tersedia</li>
+                <li>Bayar aman sebelum datang</li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="booking-section" class="card">
+            <h2>Pesan Jadwal</h2>
+            <p class="muted">Isi nama, email, lalu pilih jam kosong. Butuh 1 menit.</p>
+            <form id="booking-form" class="grid">
+                <label>
+                    Nama lengkap
+                    <input type="text" id="name" placeholder="contoh: Budi Santoso" required>
+                </label>
+
+                <label>
+                    Email (untuk bukti & pengingat)
+                    <input type="email" id="email" placeholder="kamu@mail.com" required>
+                </label>
+
+                <label class="full">
+                    Pilih jam
+                    <select id="slot" required>
+                        <option value="">Pilih jam yang tersedia</option>
+                    </select>
+                </label>
+
+                <button type="submit" class="button primary full">Bayar & Booking (Rp10.000)</button>
+                <p id="booking-message" class="status" aria-live="polite"></p>
+            </form>
+        </section>
+
+        <section class="card alt">
+            <h3>Cara kerja</h3>
+            <ol class="steps">
+                <li>Pilih jam yang masih tersedia.</li>
+                <li>Isi nama & email, bayar sekali.</li>
+                <li>Tunjukkan email bukti saat datang.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 BarberBook. Admin masuk via <a href="/admin/">/admin</a>.</p>
+    </footer>
+    <script src="/main.js"></script>
+</body>
+</html>

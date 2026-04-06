@@ -1,0 +1,36 @@
+{
+  "name": "barbershop-booking",
+  "version": "1.0.0",
+  "description": "A booking system for a barbershop with an admin dashboard and payment processing.",
+  "main": "src/app.ts",
+  "scripts": {
+    "start": "ts-node --transpile-only src/app.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.10.9"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.10",
+    "@types/express": "^4.17.8",
+    "@types/jest": "^26.0.0",
+    "@types/node": "^25.0.6",
+    "jest": "^26.6.3",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.2"
+  },
+  "keywords": [
+    "barbershop",
+    "booking",
+    "admin",
+    "payment",
+    "refund"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

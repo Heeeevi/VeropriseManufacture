@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Veroprise</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <main class="container">
+        <section class="card">
+            <h2>Admin Login</h2>
+            <p class="muted">Gunakan kredensial bawaan: admin / password123</p>
+            <form id="login-form" class="grid">
+                <label>
+                    Email / Username
+                    <input type="text" id="admin-email" placeholder="admin" required>
+                </label>
+                <label>
+                    Password
+                    <input type="password" id="admin-password" placeholder="password123" required>
+                </label>
+                <button type="submit" class="button primary full">Masuk</button>
+                <p id="login-status" class="status"></p>
+            </form>
+        </section>
+
+        <section class="card" id="dashboard" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div>
+                    <h2>Pesanan Selesai</h2>
+                    <p class="muted">Konfirmasi pesanan yang sudah dibayar.</p>
+                </div>
+                <button id="refresh" class="button">Refresh</button>
+            </div>
+            <div id="bookings-list" class="muted" style="margin-top:12px;">Belum ada data.</div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Veroprise Admin</p>
+    </footer>
+    <script src="/admin/admin.js"></script>
+</body>
+
+</html>
