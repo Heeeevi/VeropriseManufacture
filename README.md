@@ -1,80 +1,53 @@
-# Barbershop Booking System
+# Veroprise Hybrid ERP Workspace
 
-This project is a booking system for a barbershop that allows users to book appointments, manage their bookings, and provides an admin dashboard for managing appointments. The system is designed to be responsive and functional across various devices.
+Monorepo ini berisi dua bagian utama:
 
-## Features
+- Frontend React + Vite di folder `barberdoc_erp` untuk Veroprise ERP.
+- Backend Express (legacy/hybrid) di root folder untuk endpoint operasional tambahan.
 
-- **User Booking**: Users can book appointments by selecting available slots. Each booking requires a payment of 10,000 rupiah.
-- **Cancellation and Refund**: Users can cancel their bookings and receive a refund of 5,000 rupiah.
-- **Admin Dashboard**: Admins can confirm completed bookings and view a list of completed appointments.
-- **Responsive Design**: The application is designed to work seamlessly on both desktop and mobile devices.
+Fokus pengembangan saat ini: logistik dan procurement dengan basis Supabase PostgreSQL, tetap mempertahankan beberapa modul legacy agar transisi berjalan aman.
 
-## Project Structure
+## Struktur Singkat
 
-```
-barbershop-booking
-├── src
-│   ├── app.ts
-│   ├── controllers
-│   │   ├── bookingsController.ts
-│   │   └── adminController.ts
-│   ├── routes
-│   │   ├── bookings.ts
-│   │   └── admin.ts
-│   ├── middleware
-│   │   └── auth.ts
-│   ├── services
-│   │   ├── paymentService.ts
-│   │   └── refundService.ts
-│   ├── models
-│   │   ├── booking.ts
-│   │   └── user.ts
-│   ├── utils
-│   │   └── validators.ts
-│   └── types
-│       └── index.ts
-├── public
-│   ├── index.html
-│   └── styles.css
-├── package.json
-├── tsconfig.json
-└── README.md
+```text
+.
+├── barberdoc_erp/                # Frontend utama Veroprise ERP
+│   ├── src/
+│   └── supabase/                 # SQL schema, migration, dan panduan eksekusi
+├── src/                          # Backend Express (hybrid)
+├── public/                       # Asset root/legacy
+└── package.json                  # Backend package manifest
 ```
 
-## Setup Instructions
+## Jalankan Frontend
 
-1. **Clone the Repository**: 
-   ```
-   git clone <repository-url>
-   cd barbershop-booking
-   ```
+```bash
+cd barberdoc_erp
+npm install
+npm run dev
+```
 
-2. **Install Dependencies**: 
-   ```
-   npm install
-   ```
+## Jalankan Backend Root
 
-3. **Run the Application**: 
-   ```
-   npm start
-   ```
+```bash
+npm install
+npm start
+```
 
-4. **Access the Application**: Open your browser and navigate to `http://localhost:3000`.
+## Setup Database Supabase
 
-## Usage Guidelines
+1. Buka SQL Editor pada project Supabase.
+2. Jalankan schema utama yang sudah tersedia di folder `barberdoc_erp/supabase`.
+3. Untuk modul logistik/procurement terbaru, jalankan file:
 
-- Users can create a booking by selecting an available time slot and making the required payment.
-- Bookings can be canceled, and a partial refund will be processed automatically.
-- Admins can log in to manage bookings and confirm completed appointments.
+```text
+barberdoc_erp/supabase/postgresql_procurement_schema.sql
+```
 
-## Technologies Used
+4. Isi environment frontend pada file `.env` di folder `barberdoc_erp`.
 
-- Node.js
-- Express.js
-- TypeScript
-- HTML/CSS
-- Responsive Design Techniques
+## Catatan Keamanan
 
-## License
-
-This project is licensed under the MIT License.
+- Jangan commit `service_role` key ke repository.
+- Selalu gunakan secret manager deployment untuk key sensitif.
+- Jika key pernah terpapar, segera rotate dari dashboard Supabase.

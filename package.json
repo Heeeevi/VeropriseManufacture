@@ -1,7 +1,7 @@
 {
-  "name": "barbershop-booking",
+  "name": "veroprise-hybrid-erp",
   "version": "1.0.0",
-  "description": "A booking system for a barbershop with an admin dashboard and payment processing.",
+  "description": "Hybrid ERP backend for Veroprise with booking legacy routes and logistics/procurement support.",
   "main": "src/app.ts",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts",
@@ -25,8 +25,10 @@
     "typescript": "^4.1.2"
   },
   "keywords": [
-    "barbershop",
-    "booking",
+    "veroprise",
+    "erp",
+    "logistics",
+    "procurement",
     "admin",
     "payment",
     "refund"
