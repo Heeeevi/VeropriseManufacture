@@ -3,6 +3,46 @@
 
 Last updated: 2026-04-06
 
+## 0. Quick Update (2026-04-14)
+
+Implementasi tambahan untuk kebutuhan manufaktur realtime sudah dijalankan pada layer aplikasi:
+
+1. Work Orders dashboard sekarang aktif
+- menampilkan KPI total WO, aktif, selesai, dan rata-rata progress
+- menampilkan distribusi status WO secara visual
+- menampilkan progress per WO dalam persen
+- menampilkan tren 7 hari (WO dibuat vs WO selesai)
+
+2. Job Cards sekarang realtime
+- update data WO dan WO items auto-refresh via Supabase realtime channel
+- progress persen ditampilkan di tabel WO dan dialog detail WO
+
+3. Migration progress tracking disiapkan
+- file migration baru: `barberdoc_erp/supabase/migrations/20260414_work_order_progress_tracking.sql`
+- menambah kolom progress di `work_orders` (progress_percentage, item_completion_percentage, produced_quantity, progress_updated_at)
+- menambah fungsi dan trigger SQL untuk recalculate progress otomatis
+
+4. Tracking output aktual ditambahkan
+- pada dialog Job Cards kini tersedia input `Output Aktual`
+- output aktual disimpan ke `work_orders.produced_quantity`
+- progress WO kini mempertimbangkan status proses + item picked + rasio output aktual terhadap target
+
+5. Analitik manufaktur ditingkatkan
+- Work Orders summary kini menampilkan `Output Attainment` (realisasi vs target)
+- menampilkan ringkasan total target completed WO vs total output aktual
+- menampilkan metrik rata-rata yield gap untuk evaluasi produksi
+
+6. Filter & alert analitik ditambahkan
+- halaman Work Orders kini punya filter tanggal dan filter produk
+- tersedia pengaturan threshold alert untuk output attainment
+- sistem menampilkan warning otomatis untuk WO completed yang berada di bawah threshold
+
+7. Grafik deviasi bahan vs output ditambahkan
+- tersedia panel `Deviasi Yield per Produk` untuk melihat gap per produk
+- panel menampilkan attainment %, yield gap %, total target, total output aktual, dan jumlah WO per produk
+
+Catatan: agar persistence progress aktif penuh di database, migration 20260414 perlu dieksekusi pada environment Supabase target.
+
 ## 1. Summary
 
 Implementasi saat ini terbagi menjadi dua lapisan:
