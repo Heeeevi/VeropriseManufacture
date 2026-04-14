@@ -1,0 +1,3 @@
+[submodule "barberdoc_erp"]
+	path = barberdoc_erp
+	url = https://github.com/Heeeevi/VeropriseManufacture.git
