@@ -77,7 +77,7 @@ const menuItems: MenuItem[] = [
       { label: 'Work Orders', href: '/manufacturing/work-orders', roles: ['super_admin', 'owner', 'manager', 'peracikan_bumbu'] },
       { label: 'Production Planning', href: '/manufacturing/planning', roles: ['super_admin', 'owner', 'manager', 'peracikan_bumbu'] },
       { label: 'Inventory Management', href: '/manufacturing/inventory', roles: ['super_admin', 'owner', 'manager', 'gudang'] },
-      { label: 'Disassembly (Aqiqah)', href: '/manufacturing/disassembly', roles: ['super_admin', 'owner', 'manager', 'gudang', 'peracikan_bumbu'] },
+      { label: 'Disassembly', href: '/manufacturing/disassembly', roles: ['super_admin', 'owner', 'manager', 'gudang', 'peracikan_bumbu'] },
     ]
   },
 

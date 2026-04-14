@@ -5,6 +5,25 @@ import { useOutlet } from './useOutlet';
 import type { Shift } from '@/types/database';
 import { useToast } from './use-toast';
 
+function getSupabaseErrorMessage(error: unknown, fallbackMessage: string): string {
+  if (!error) return fallbackMessage;
+
+  if (typeof error === 'object' && error !== null) {
+    const maybeMessage = (error as { message?: unknown }).message;
+    const maybeDetails = (error as { details?: unknown }).details;
+    const maybeHint = (error as { hint?: unknown }).hint;
+
+    const parts = [maybeMessage, maybeDetails, maybeHint]
+      .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+      .map((part) => part.trim());
+
+    if (parts.length > 0) return parts.join(' | ');
+  }
+
+  if (error instanceof Error && error.message) return error.message;
+  return fallbackMessage;
+}
+
 interface ShiftContextType {
   currentShift: Shift | null;
   loading: boolean;
@@ -111,7 +130,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error starting shift:', error);
-      const message = error instanceof Error ? error.message : 'Gagal memulai shift';
+      const message = getSupabaseErrorMessage(error, 'Gagal memulai shift');
       toast({ title: 'Error', description: message, variant: 'destructive' });
       return false;
     }
@@ -157,7 +176,7 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error) {
       console.error('Error ending shift:', error);
-      const message = error instanceof Error ? error.message : 'Gagal mengakhiri shift';
+      const message = getSupabaseErrorMessage(error, 'Gagal mengakhiri shift');
       toast({ title: 'Error', description: message, variant: 'destructive' });
       return false;
     }

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, CheckCircle2, PlayCircle, Loader2, ArrowRightCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -27,6 +28,7 @@ export default function JobCards() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedWO, setSelectedWO] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actualProducedInput, setActualProducedInput] = useState('0');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -38,7 +40,108 @@ export default function JobCards() {
 
   useEffect(() => {
     fetchData();
+
+    const channel = supabase
+      .channel('manufacturing-job-cards-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'work_orders' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'work_order_items' }, fetchData)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const calculateWOProgress = (wo: any): number => {
+    if (wo.status === 'completed') return 100;
+    if (wo.status === 'cancelled') return 0;
+
+    const total = wo.items?.length || 0;
+    const picked = wo.items?.filter((item: any) => item.status === 'picked').length || 0;
+    const pickedRatio = total > 0 ? picked / total : 0;
+
+    const baseByStatus: Record<string, number> = {
+      planned: 8,
+      kitting: 30,
+      in_progress: 62,
+    };
+
+    const base = baseByStatus[wo.status] || 0;
+    const baselineProgress = Math.min(95, Math.round(base + pickedRatio * 33));
+
+    const targetQty = Number(wo.target_quantity || 0);
+    const producedQty = Number(wo.produced_quantity || 0);
+    const outputProgress = targetQty > 0 ? Math.min(95, Math.round((producedQty / targetQty) * 100)) : 0;
+
+    return Math.max(baselineProgress, outputProgress);
+  };
+
+  const calculateItemCompletionPercentage = (wo: any): number => {
+    const total = wo.items?.length || 0;
+    const picked = wo.items?.filter((item: any) => item.status === 'picked').length || 0;
+    if (total === 0) return 0;
+    return Number(((picked / total) * 100).toFixed(2));
+  };
+
+  const persistWorkOrderProgress = async (woId: string, producedOverride?: number) => {
+    const { data: wo, error: woError } = await (supabase as any)
+      .from('work_orders')
+      .select('id, status, target_quantity, produced_quantity, items:work_order_items(status)')
+      .eq('id', woId)
+      .single();
+
+    if (woError || !wo) return;
+
+    const progress = calculateWOProgress(wo);
+    const itemCompletion = calculateItemCompletionPercentage(wo);
+    const currentProduced = Number(wo.produced_quantity || 0);
+    const producedQuantity = typeof producedOverride === 'number'
+      ? producedOverride
+      : (wo.status === 'completed' ? Math.max(currentProduced, Number(wo.target_quantity || 0)) : currentProduced);
+
+    const { error: progressError } = await (supabase as any)
+      .from('work_orders')
+      .update({
+        progress_percentage: progress,
+        item_completion_percentage: itemCompletion,
+        produced_quantity: producedQuantity,
+        progress_updated_at: new Date().toISOString(),
+      })
+      .eq('id', woId);
+
+    // Keep WO operational even if migration has not been executed yet.
+    if (progressError) {
+      console.warn('Progress persistence skipped:', progressError.message);
+    }
+  };
+
+  const saveActualProducedQuantity = async () => {
+    if (!selectedWO?.id) return;
+
+    try {
+      const producedValue = Number(actualProducedInput || 0);
+      if (Number.isNaN(producedValue) || producedValue < 0) {
+        throw new Error('Output aktual tidak valid. Gunakan angka >= 0.');
+      }
+
+      const { error } = await (supabase as any)
+        .from('work_orders')
+        .update({
+          produced_quantity: producedValue,
+          progress_updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedWO.id);
+
+      if (error) throw error;
+
+      await persistWorkOrderProgress(selectedWO.id, producedValue);
+      setSelectedWO((prev: any) => ({ ...prev, produced_quantity: producedValue }));
+      toast({ title: 'Berhasil', description: 'Output aktual berhasil disimpan.' });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -139,6 +242,8 @@ export default function JobCards() {
       const { error: itemsError } = await (supabase as any).from('work_order_items').insert(itemsPayload);
       if (itemsError) throw itemsError;
 
+      await persistWorkOrderProgress(woHeader.id);
+
       toast({ title: 'Sukses', description: 'Work Order berhasil dibuat.' });
       setShowCreateDialog(false);
       setFormData({ product_id: '', target_quantity: '', warehouse_id: '', notes: '' });
@@ -169,6 +274,8 @@ export default function JobCards() {
          await processJobCardCompletion(woId);
       }
 
+      await persistWorkOrderProgress(woId);
+
       toast({ title: 'Berhasil', description: `Status berudah ke ${newStatus}` });
       fetchData();
       setShowDetailDialog(false);
@@ -191,6 +298,10 @@ export default function JobCards() {
              ...prev,
              items: prev.items.map((i: any) => i.id === itemId ? { ...i, status: picked ? 'picked' : 'pending' } : i)
          }));
+
+         if (selectedWO?.id) {
+           await persistWorkOrderProgress(selectedWO.id);
+         }
 
       } catch (error: any) {
          toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -298,6 +409,8 @@ export default function JobCards() {
                      <TableHead>Produk Target</TableHead>
                      <TableHead>Target Qty</TableHead>
                      <TableHead>Status</TableHead>
+                     <TableHead>Progress</TableHead>
+                    <TableHead>Output Aktual</TableHead>
                      <TableHead>Gudang/Dapur</TableHead>
                      <TableHead>Aksi</TableHead>
                    </TableRow>
@@ -305,7 +418,7 @@ export default function JobCards() {
                  <TableBody>
                    {workOrders.length === 0 ? (
                       <TableRow>
-                         <TableCell colSpan={7} className="text-center py-6">Belum ada Job Card aktif</TableCell>
+                       <TableCell colSpan={9} className="text-center py-6">Belum ada Job Card aktif</TableCell>
                       </TableRow>
                    ) : workOrders.map(wo => (
                       <TableRow key={wo.id}>
@@ -314,9 +427,24 @@ export default function JobCards() {
                          <TableCell className="font-medium">{wo.product?.name}</TableCell>
                          <TableCell>{wo.target_quantity}</TableCell>
                          <TableCell>{getStatusBadge(wo.status)}</TableCell>
+                         <TableCell className="min-w-[170px]">
+                           <div className="space-y-1">
+                             <div className="text-xs text-muted-foreground text-right">{calculateWOProgress(wo)}%</div>
+                             <Progress value={calculateWOProgress(wo)} className="h-2" />
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-sm">{Number(wo.produced_quantity || 0).toFixed(2)}</TableCell>
                          <TableCell>{wo.warehouse?.name}</TableCell>
                          <TableCell>
-                           <Button variant="outline" size="sm" onClick={() => { setSelectedWO(wo); setShowDetailDialog(true); }}>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => {
+                               setSelectedWO(wo);
+                               setActualProducedInput(String(Number(wo.produced_quantity || 0)));
+                               setShowDetailDialog(true);
+                             }}
+                           >
                              Buka Card
                            </Button>
                          </TableCell>
@@ -401,6 +529,42 @@ export default function JobCards() {
                       <p className="text-xs text-muted-foreground">PIC / Chef</p>
                       <p className="font-medium">-</p>
                     </div>
+                 </div>
+
+                 <div className="space-y-2 border rounded p-3">
+                   <div className="flex items-center justify-between">
+                     <p className="text-sm text-muted-foreground">Progress Produksi</p>
+                     <p className="text-sm font-semibold">{calculateWOProgress(selectedWO)}%</p>
+                   </div>
+                   <Progress value={calculateWOProgress(selectedWO)} className="h-2.5" />
+                 </div>
+
+                 <div className="border rounded p-3 space-y-3">
+                   <p className="text-sm font-medium">Realisasi Output Produksi</p>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                     <div className="space-y-1">
+                       <Label className="text-xs">Target Qty</Label>
+                       <Input value={Number(selectedWO.target_quantity || 0)} disabled />
+                     </div>
+                     <div className="space-y-1">
+                       <Label className="text-xs">Output Aktual</Label>
+                       <Input
+                         type="number"
+                         min="0"
+                         step="0.01"
+                         value={actualProducedInput}
+                         onChange={(e) => setActualProducedInput(e.target.value)}
+                         disabled={selectedWO.status === 'cancelled'}
+                       />
+                     </div>
+                     <Button
+                       variant="outline"
+                       onClick={saveActualProducedQuantity}
+                       disabled={selectedWO.status === 'cancelled'}
+                     >
+                       Simpan Output Aktual
+                     </Button>
+                   </div>
                  </div>
 
                  {/* Kitting List / Bahan Baku */}

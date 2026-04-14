@@ -8,7 +8,8 @@ Panduan ini untuk project Supabase baru.
 2. `postgresql_procurement_schema.sql`
 3. `postgresql_auth_profile_trigger.sql`
 4. `postgresql_backfill_profiles.sql`
-5. `ASSIGN_NEW_OWNER.sql` (setelah user owner ada di `auth.users`)
+5. `20260414_manufacturing_schema_fix.sql`
+6. `ASSIGN_NEW_OWNER.sql` (setelah user owner ada di `auth.users`)
 
 ## Kenapa Ada Trigger Auth Profile
 
@@ -16,6 +17,7 @@ Login dan role app membaca data dari `public.profiles`.
 Jika user hanya dibuat di `auth.users` tanpa row di `profiles`, user akan tampil tanpa role.
 
 File `postgresql_auth_profile_trigger.sql` memastikan setiap user baru otomatis dibuatkan row `profiles`.
+File `20260414_manufacturing_schema_fix.sql` menambah kolom dan tabel yang dipakai UI manufaktur + POS: `products.base_unit`, `products.purchase_unit`, `products.conversion_rate`, `product_bom_items.yield_percentage`, `work_orders`, `work_order_items`, `disassemblies`, `disassembly_items`, `pos_shifts`, dan `transactions.shift_id`.
 
 ## Verifikasi Wajib
 
