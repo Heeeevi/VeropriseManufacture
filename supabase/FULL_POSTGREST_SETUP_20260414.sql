@@ -1142,6 +1142,8 @@ CREATE OR REPLACE FUNCTION has_procurement_role(_roles procurement_role[])
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
   SELECT EXISTS (
     SELECT 1
